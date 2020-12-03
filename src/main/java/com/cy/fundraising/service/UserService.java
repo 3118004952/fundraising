@@ -1,6 +1,8 @@
 package com.cy.fundraising.service;
 
 import com.cy.fundraising.dto.LoginResult;
+import com.cy.fundraising.dto.ReadListResult;
+import com.cy.fundraising.entities.GiftTblEntity;
 import com.cy.fundraising.entities.ProjectTblEntity;
 import com.cy.fundraising.entities.UserTblEntity;
 import com.cy.fundraising.exception.MyExceptionEnum;
@@ -9,13 +11,12 @@ import com.cy.fundraising.mapper.UserMapper;
 import com.cy.fundraising.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -119,5 +120,48 @@ public class UserService {
             }
         }
         throw new MyWebException(MyExceptionEnum.UPLOAD_PHOTO_FALSE);
+    }
+
+    public Map readList(int pageIndex , int pageSize){
+        int totalPage = userMapper.projectCount();
+        if(totalPage % pageSize == 0){
+            totalPage /= pageSize;
+        }
+        else{
+            totalPage /= pageSize;
+            totalPage++;
+        }
+        List<ReadListResult> project = userMapper.readList(pageIndex, pageSize);
+        Map<String, Object> res = new HashMap<>();
+        res.put("totalPage", totalPage);
+        res.put("project", project);
+        return res;
+    }
+
+    public ProjectTblEntity readDetail(int projectId){
+        return userMapper.readDetail(projectId);
+    }
+
+    @Transactional
+    public Map contribution(String token, String projectId, int money) throws MyWebException {
+        UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
+        if(userTblEntity != null){
+            GiftTblEntity gift = new GiftTblEntity();
+            gift.setGiftMoney(money);
+            gift.setGiftTime(new Date());
+            gift.setProjectId(projectId);
+            gift.setUserId(userTblEntity.getUserId());
+            gift.setGiftId(UUID.randomUUID().toString());
+            if(userMapper.contributionUpdateProject(gift.getGiftMoney(),gift.getProjectId()) != 1){
+                throw new MyWebException(MyExceptionEnum.PROJECT_CONTRIBUTION_FALSE);
+            }
+            userMapper.contributionUpdateGiftTbl(gift);
+            Map<String, Object> ret = new HashMap<>();
+            ret.put("money", gift.getGiftMoney());
+            return ret;
+        }
+        else{
+            throw new MyWebException(MyExceptionEnum.TOKEN_NOT_FOUND);
+        }
     }
 }

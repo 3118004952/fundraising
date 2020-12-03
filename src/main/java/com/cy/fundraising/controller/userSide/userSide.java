@@ -61,4 +61,19 @@ public class userSide {
 
         return JsonResult.success(userService.uploadPhoto(token.substring(7), file, projectId)).result();
     }
+
+    @GetMapping("/readList")
+    public Map readList(@RequestParam("pageIndex") int pageIndex, @RequestParam("pageSize") int pageSize){
+        return JsonResult.success(userService.readList(pageIndex , pageSize)).result();
+    }
+
+    @GetMapping("/readDetail")
+    public Map readDetail(@RequestParam("projectId") int projectId){
+        return JsonResult.success(userService.readDetail(projectId)).result();
+    }
+
+    @GetMapping("/contribution")
+    public Map contribution(@RequestHeader("AUTHORIZATION")String token, @RequestParam("projectId") String projectId, @RequestParam("money") int money) throws MyWebException {
+        return JsonResult.success(userService.contribution(token.substring(7), projectId, money)).result();
+    }
 }
