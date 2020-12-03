@@ -68,7 +68,7 @@ public class userSide {
     }
 
     @GetMapping("/readDetail")
-    public Map readDetail(@RequestParam("projectId") int projectId){
+    public Map readDetail(@RequestParam("projectId") String projectId){
         return JsonResult.success(userService.readDetail(projectId)).result();
     }
 

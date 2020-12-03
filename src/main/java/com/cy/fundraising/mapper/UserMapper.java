@@ -41,7 +41,7 @@ public interface UserMapper {
     List<ReadListResult> readList(int pageIndex, int pageSize);
 
     @Select("select * from project_tbl where project_id=#{projectId}")
-    ProjectTblEntity readDetail(int projectId);
+    ProjectTblEntity readDetail(String projectId);
 
     @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=4")
     int contributionUpdateProject(double money, String projectId);

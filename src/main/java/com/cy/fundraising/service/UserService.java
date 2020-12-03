@@ -138,7 +138,7 @@ public class UserService {
         return res;
     }
 
-    public ProjectTblEntity readDetail(int projectId){
+    public ProjectTblEntity readDetail(String projectId){
         return userMapper.readDetail(projectId);
     }
 
