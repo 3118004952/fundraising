@@ -24,5 +24,4 @@ public class FailedController {
         throw new MyWebException(MyExceptionEnum.CONTENT_TYPE_FALSE);
     }
 
-
 }

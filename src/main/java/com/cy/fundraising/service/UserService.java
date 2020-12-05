@@ -5,8 +5,7 @@ import com.cy.fundraising.dto.ReadListResult;
 import com.cy.fundraising.entities.GiftTblEntity;
 import com.cy.fundraising.entities.ProjectTblEntity;
 import com.cy.fundraising.entities.UserTblEntity;
-import com.cy.fundraising.exception.MyExceptionEnum;
-import com.cy.fundraising.exception.MyWebException;
+import com.cy.fundraising.exception.*;
 import com.cy.fundraising.mapper.UserMapper;
 import com.cy.fundraising.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class UserService {
         userMapper.register(userTblEntity);
     }
 
-    public LoginResult login(UserTblEntity userTblEntity) throws MyWebException, UnsupportedEncodingException {
+    public LoginResult login(UserTblEntity userTblEntity) throws BaseException, UnsupportedEncodingException {
         LoginResult loginResult = userMapper.login(userTblEntity);
         if(loginResult != null){
             if("root".equals(userTblEntity.getUserPhone())){
@@ -49,7 +48,7 @@ public class UserService {
             userMapper.updateToken(userTblEntity);
             return loginResult;
         }else{
-            throw new MyWebException(MyExceptionEnum.LOGIN_MESSAGE_FALSE);
+            throw new LoginException(400, "手机号码或账号密码出错！");
         }
     }
 
@@ -57,7 +56,7 @@ public class UserService {
         return userMapper.selectUserByToken(token);
     }
 
-    public ProjectTblEntity launch(String token, ProjectTblEntity projectTblEntity) throws MyWebException {
+    public ProjectTblEntity launch(String token, ProjectTblEntity projectTblEntity) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
         if(userTblEntity != null){
             try {
@@ -68,17 +67,17 @@ public class UserService {
                 return projectTblEntity;
             }
             catch (Exception e){
-                throw new MyWebException(MyExceptionEnum.REQUEST_FIELD_ERROR);
+                throw new LaunchException(400, "请求字段出错！");
             }
         }
         else{
-            throw new MyWebException(MyExceptionEnum.TOKEN_NOT_FOUND);
+            throw new LaunchException(400, "token认证失败！");
         }
     }
-    public Map uploadPhoto(String token, MultipartFile file, String projectId) throws MyWebException, IOException {
+    public Map uploadPhoto(String token, MultipartFile file, String projectId) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
         if(userTblEntity == null){
-            throw new MyWebException(MyExceptionEnum.TOKEN_NOT_FOUND);
+            throw new UploadPhotoException(400, "token认证失败！");
         }
         if (!file.isEmpty()) {
             BufferedOutputStream out = null;
@@ -94,7 +93,7 @@ public class UserService {
                 if (!file2.getParentFile().exists()) {
                     boolean result = file2.getParentFile().mkdirs();
                     if (!result) {
-                        throw new MyWebException(MyExceptionEnum.UPLOAD_PHOTO_FALSE);
+                        throw new UploadPhotoException(400, "服务器文件操作失败！");
                     }
                 }
                 out = new BufferedOutputStream(
@@ -110,16 +109,19 @@ public class UserService {
                     return ret;
                 }
                 else{
-                    throw new MyWebException(MyExceptionEnum.UPLOAD_PHOTO_FALSE);
+                    throw new UploadPhotoException(400,"项目未知！");
                 }
 
 
             }
+            catch (UploadPhotoException e){
+                throw e;
+            }
             catch (Exception e){
-                throw new MyWebException(MyExceptionEnum.UPLOAD_PHOTO_FALSE);
+                throw new UploadPhotoException(400,"上传图片失败！");
             }
         }
-        throw new MyWebException(MyExceptionEnum.UPLOAD_PHOTO_FALSE);
+        throw new UploadPhotoException(400,"上传的图片为空！");
     }
 
     public Map readList(int pageIndex , int pageSize){
@@ -143,8 +145,10 @@ public class UserService {
     }
 
     @Transactional
-    public Map contribution(String token, String projectId, int money) throws MyWebException {
+    public Map contribution(String token, String projectId, int money) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
+        if(money <= 0)
+            throw new ContributionException(400,"捐款不能为负！");
         if(userTblEntity != null){
             GiftTblEntity gift = new GiftTblEntity();
             gift.setGiftMoney(money);
@@ -153,7 +157,7 @@ public class UserService {
             gift.setUserId(userTblEntity.getUserId());
             gift.setGiftId(UUID.randomUUID().toString());
             if(userMapper.contributionUpdateProject(gift.getGiftMoney(),gift.getProjectId()) != 1){
-                throw new MyWebException(MyExceptionEnum.PROJECT_CONTRIBUTION_FALSE);
+                throw new ContributionException(400, "项目未找到或项目不在募捐状态！");
             }
             userMapper.contributionUpdateGiftTbl(gift);
             Map<String, Object> ret = new HashMap<>();
@@ -161,7 +165,7 @@ public class UserService {
             return ret;
         }
         else{
-            throw new MyWebException(MyExceptionEnum.TOKEN_NOT_FOUND);
+            throw new ContributionException(400, "token认证失败！");
         }
     }
 }

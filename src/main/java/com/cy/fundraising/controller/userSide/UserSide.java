@@ -2,8 +2,9 @@ package com.cy.fundraising.controller.userSide;
 
 import com.cy.fundraising.entities.ProjectTblEntity;
 import com.cy.fundraising.entities.UserTblEntity;
-import com.cy.fundraising.exception.MyExceptionEnum;
-import com.cy.fundraising.exception.MyWebException;
+import com.cy.fundraising.exception.BaseException;
+
+import com.cy.fundraising.exception.RegisterException;
 import com.cy.fundraising.service.UserService;
 import com.cy.fundraising.util.JsonResult;
 import com.cy.fundraising.util.TokenUtil;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,10 +19,9 @@ import java.util.UUID;
 @ControllerAdvice//全局异常处理
 @RestController
 @RequestMapping(value = "/userSide")
-public class userSide {
+public class UserSide {
     @Autowired
     private UserService userService;
-
 
     @PostMapping("/register")
     public Map register(@RequestBody UserTblEntity userTblEntity) throws Exception{
@@ -38,11 +37,11 @@ public class userSide {
                 return JsonResult.success(map).result();
             }
             else{
-                throw new MyWebException(MyExceptionEnum.PHONE_EXIST);
+                throw new RegisterException(400,"该手机号码已存在!");
             }
         }
         else{
-            throw new MyWebException(MyExceptionEnum.REGISTER_FALSE);
+            throw new RegisterException(400,"部分数据为空!");
         }
 
     }
@@ -53,11 +52,11 @@ public class userSide {
     }
 
     @PostMapping("/launch")
-    public Map launch(@RequestHeader("AUTHORIZATION")String token,  @RequestBody ProjectTblEntity projectTblEntity) throws MyWebException {
+    public Map launch(@RequestHeader("AUTHORIZATION")String token,  @RequestBody ProjectTblEntity projectTblEntity) throws BaseException {
         return JsonResult.success(userService.launch(token.substring(7), projectTblEntity)).result();
     }
     @RequestMapping("/uploadPhoto")
-    public Map uploadAvatar(@RequestHeader("AUTHORIZATION")String token, @RequestParam("photo") MultipartFile file, @RequestParam("projectId") String projectId) throws Exception, IOException, MyWebException {
+    public Map uploadAvatar(@RequestHeader("AUTHORIZATION")String token, @RequestParam("photo") MultipartFile file, @RequestParam("projectId") String projectId) throws BaseException {
 
         return JsonResult.success(userService.uploadPhoto(token.substring(7), file, projectId)).result();
     }
@@ -67,13 +66,15 @@ public class userSide {
         return JsonResult.success(userService.readList(pageIndex , pageSize)).result();
     }
 
+
+
     @GetMapping("/readDetail")
     public Map readDetail(@RequestParam("projectId") String projectId){
         return JsonResult.success(userService.readDetail(projectId)).result();
     }
 
     @GetMapping("/contribution")
-    public Map contribution(@RequestHeader("AUTHORIZATION")String token, @RequestParam("projectId") String projectId, @RequestParam("money") int money) throws MyWebException {
+    public Map contribution(@RequestHeader("AUTHORIZATION")String token, @RequestParam("projectId") String projectId, @RequestParam("money") int money) throws BaseException {
         return JsonResult.success(userService.contribution(token.substring(7), projectId, money)).result();
     }
 }
