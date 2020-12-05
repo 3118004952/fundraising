@@ -1,4 +1,4 @@
-package com.cy.fundraising.controller.userSide;
+package com.cy.fundraising.controller.user;
 
 import com.cy.fundraising.entities.ProjectTblEntity;
 import com.cy.fundraising.entities.UserTblEntity;
@@ -22,6 +22,11 @@ import java.util.UUID;
 public class User {
     @Autowired
     private UserService userService;
+
+    @PostMapping("/**")
+    public Map notFound() throws BaseException {
+        throw new BaseException(404,"Not Found!");
+    }
 
     @PostMapping("/register")
     public Map register(@RequestBody UserTblEntity userTblEntity) throws Exception{
@@ -76,5 +81,10 @@ public class User {
     @GetMapping("/contribution")
     public Map contribution(@RequestHeader("AUTHORIZATION")String token, @RequestParam("projectId") String projectId, @RequestParam("money") int money) throws BaseException {
         return JsonResult.success(userService.contribution(token.substring(7), projectId, money)).result();
+    }
+
+    @GetMapping("/readDonation")
+    public Map readDonation(@RequestParam("projectId") String projectId){
+        return JsonResult.success(userService.readDonation(projectId)).result();
     }
 }

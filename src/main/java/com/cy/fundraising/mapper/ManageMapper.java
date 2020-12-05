@@ -13,9 +13,9 @@ public interface ManageMapper {
     @Select("select * from project_tbl where project_id=#{projectId}")
     ProjectTblEntity selectProjectById(String projectId);
 
-    @Update("update set project_state=project_state+1 where project_id=#{projectId}")
+    @Update("update project_tbl set project_state=project_state+1 where project_id=#{projectId}")
     int SetProjectToNext(String projectId);
 
-    @Update("update set project_state=6 where project_id=#{projectId}")
+    @Update("update project_tbl set project_state=6 where project_id=#{projectId}")
     int SetProjectToError(String projectId);
 }

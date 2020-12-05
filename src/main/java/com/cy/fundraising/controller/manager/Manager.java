@@ -1,4 +1,4 @@
-package com.cy.fundraising.controller.managerSide;
+package com.cy.fundraising.controller.manager;
 
 import com.cy.fundraising.exception.BaseException;
 import com.cy.fundraising.service.ManageService;
@@ -16,10 +16,15 @@ public class Manager {
     @Autowired
     ManageService manageService;
 
+    @PostMapping("/**")
+    public Map notFound() throws BaseException {
+        throw new BaseException(404,"Not Found!");
+    }
 
     @PostMapping("/setProjectState")
     public Map setProjectState(@RequestHeader("AUTHORIZATION") String token, @RequestBody Map<String, String> param) throws BaseException {
         manageService.setProjectState(token.substring(7), param.get("state"), param.get("projectId"));
         return JsonResult.success(null).result();
     }
+
 }

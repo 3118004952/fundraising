@@ -37,13 +37,18 @@ public class UserService {
     }
 
     public LoginResult login(UserTblEntity userTblEntity) throws LoginException, UnsupportedEncodingException {
+        //通过手机号码和密码获取账户信息
         LoginResult loginResult = userMapper.login(userTblEntity);
+        //判断数据库是否该账户
         if(loginResult != null){
+            //判断是否为管理员
             if("root".equals(userTblEntity.getUserPhone())){
                 loginResult.setUserManage(1);
             }
+            //生产新的token
             String token = TokenUtil.getToken(userTblEntity);
             loginResult.setToken(token);
+            //设置新的token
             userTblEntity.setUserToken(token);
             userMapper.updateToken(userTblEntity);
             return loginResult;
@@ -57,12 +62,15 @@ public class UserService {
     }
 
     public ProjectTblEntity launch(String token, ProjectTblEntity projectTblEntity) throws BaseException {
+        //获取账户信息
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
+        //判断账户是否存在
         if(userTblEntity != null){
             try {
                 projectTblEntity.setUserId(userTblEntity.getUserId());
                 projectTblEntity.setProjectId(UUID.randomUUID().toString());
                 projectTblEntity.setProjectMoneyTarget(-1);
+                //插入项目信息
                 userMapper.launch(projectTblEntity);
                 return projectTblEntity;
             }
@@ -76,18 +84,15 @@ public class UserService {
     }
     public Map uploadPhoto(String token, MultipartFile file) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
+        //判断账户是否存在
         if(userTblEntity == null){
             throw new UploadPhotoException(400, "token认证失败！");
         }
+        //判断用户是否发送了图片
         if (!file.isEmpty()) {
             BufferedOutputStream out = null;
             try {
-                /*
-                 * 这段代码执行完毕之后，图片上传到了工程的跟路径； 大家自己扩散下思维，如果我们想把图片上传到
-                 * d:/files大家是否能实现呢？ 等等;
-                 * 这里只是简单一个例子,请自行参考，融入到实际中可能需要大家自己做一些思考，比如： 1、文件路径； 2、文件名；
-                 * 3、文件格式; 4、文件大小的限制;
-                 */
+                //生成图片名字
                 String strPath = this.photo + UUID.randomUUID() + '.' + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);;
                 File file2 = new File(strPath);
                 if (!file2.getParentFile().exists()) {
@@ -118,6 +123,7 @@ public class UserService {
     }
 
     public Map readList(int pageIndex , int pageSize){
+        //感觉pageSize生成页数
         int totalPage = userMapper.projectCount();
         if(totalPage % pageSize == 0){
             totalPage /= pageSize;
@@ -142,16 +148,20 @@ public class UserService {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
         if(money <= 0)
             throw new ContributionException(400,"捐款不能为负！");
+        //判断账户是否存在
         if(userTblEntity != null){
+            //生成捐款实体
             GiftTblEntity gift = new GiftTblEntity();
             gift.setGiftMoney(money);
             gift.setGiftTime(new Date());
             gift.setProjectId(projectId);
             gift.setUserId(userTblEntity.getUserId());
             gift.setGiftId(UUID.randomUUID().toString());
+            //更新捐款的项目内容
             if(userMapper.contributionUpdateProject(gift.getGiftMoney(),gift.getProjectId()) != 1){
                 throw new ContributionException(400, "项目未找到或项目不在募捐状态！");
             }
+            //插入捐款记录
             userMapper.contributionUpdateGiftTbl(gift);
             Map<String, Object> ret = new HashMap<>();
             ret.put("money", gift.getGiftMoney());
@@ -161,4 +171,9 @@ public class UserService {
             throw new ContributionException(400, "token认证失败！");
         }
     }
+
+    public List<GiftTblEntity> readDonation(String projectId){
+        return userMapper.readDonation(projectId);
+    }
+
 }

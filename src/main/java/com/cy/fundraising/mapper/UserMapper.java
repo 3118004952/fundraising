@@ -40,7 +40,7 @@ public interface UserMapper {
     @Select("select project_id, project_photo, project_people_nums, project_money_now, project_name from project_tbl limit ${pageIndex * pageSize}, #{pageSize} where project_state>2 and project_state<6")
     List<ReadListResult> readList(int pageIndex, int pageSize);
 
-    @Select("select * from project_tbl where project_id=#{projectId} where project_state>2 and project_state<6")
+    @Select("select * from project_tbl where project_id=#{projectId} and project_state>2 and project_state<6")
     ProjectTblEntity readDetail(String projectId);
 
     @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=3")
@@ -48,4 +48,8 @@ public interface UserMapper {
 
     @Update("insert into gift_tbl(user_id, gift_id, gift_money, project_id, gift_time) values(#{userId}, #{giftId}, #{giftMoney}, #{projectId}, #{giftTime})")
     int contributionUpdateGiftTbl(GiftTblEntity giftTblEntity);
+
+    @Select("select * from gift_tbl where project_id=#{projectId}")
+    List<GiftTblEntity> readDonation(String projectId);
+
 }

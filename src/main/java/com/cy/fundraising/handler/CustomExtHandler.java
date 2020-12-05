@@ -4,6 +4,7 @@ import com.cy.fundraising.exception.BaseException;
 
 import com.cy.fundraising.util.JsonResult;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,6 +17,13 @@ import static com.cy.fundraising.constant.Status.UNKNOWN_ERROR;
 
 @RestControllerAdvice
 public class CustomExtHandler {
+
+    @ExceptionHandler(value = HttpRequestMethodNotSupportedException.class)
+    Map HttpMessageNotReadableException(HttpRequestMethodNotSupportedException e, HttpServletRequest request){
+        e.printStackTrace();
+        return JsonResult.error(400, "请求方法错误！").result();
+    }
+
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     Map HttpMessageNotReadableException(Exception e, HttpServletRequest request){
         e.printStackTrace();
