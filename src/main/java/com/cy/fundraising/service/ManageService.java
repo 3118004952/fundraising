@@ -5,31 +5,32 @@ import com.cy.fundraising.entities.ProjectTblEntity;
 import com.cy.fundraising.entities.UserTblEntity;
 import com.cy.fundraising.exception.BaseException;
 import com.cy.fundraising.exception.SetProjectStateException;
-import com.cy.fundraising.mapper.ManagerMapper;
+import com.cy.fundraising.mapper.ManageMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 
 @Service
-public class ManagerService {
+public class ManageService {
 
 
     @Resource
-    ManagerMapper managerMapper;
+    ManageMapper manageMapper;
 
 
     public void setProjectState(String token, String state, String projectId) throws BaseException {
         if(state == null || projectId == null)
             throw new SetProjectStateException(400, "请求内容缺失！");
-        UserTblEntity userTblEntity = managerMapper.selectUserByToken(token);
+        UserTblEntity userTblEntity = manageMapper.selectUserByToken(token);
         if (userTblEntity != null && "root".equals(userTblEntity.getUserId().substring(0, 4))){
-            ProjectTblEntity project = managerMapper.selectProjectById(projectId);
+            ProjectTblEntity project = manageMapper.selectProjectById(projectId);
             if(project == null)
                 throw new SetProjectStateException(400, "项目未知！");
             if("next".equals(state)){
                 if(project.getProjectState() < 5){
-
+                    if(1 != manageMapper.SetProjectToNext(projectId))
+                        throw new SetProjectStateException(400 ,"项目未知！");
                 }
                 else{
                     throw new SetProjectStateException(400, "项目处于不可设置状态！");
@@ -38,7 +39,8 @@ public class ManagerService {
             else{
                 if("error".equals(state)){
                     if(project.getProjectState() == 1){
-
+                        if(1 != manageMapper.SetProjectToError(projectId))
+                            throw new SetProjectStateException(400 ,"项目未知！");
                     }
                     else{
                         throw new SetProjectStateException(400, "项目不可设置该状态！");

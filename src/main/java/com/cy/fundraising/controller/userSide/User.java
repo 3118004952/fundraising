@@ -18,8 +18,8 @@ import java.util.UUID;
 
 @ControllerAdvice//全局异常处理
 @RestController
-@RequestMapping(value = "/userSide")
-public class UserSide {
+@RequestMapping(value = "/user")
+public class User {
     @Autowired
     private UserService userService;
 
@@ -56,9 +56,9 @@ public class UserSide {
         return JsonResult.success(userService.launch(token.substring(7), projectTblEntity)).result();
     }
     @RequestMapping("/uploadPhoto")
-    public Map uploadAvatar(@RequestHeader("AUTHORIZATION")String token, @RequestParam("photo") MultipartFile file, @RequestParam("projectId") String projectId) throws BaseException {
+    public Map uploadAvatar(@RequestHeader("AUTHORIZATION")String token, @RequestParam("photo") MultipartFile file) throws BaseException {
 
-        return JsonResult.success(userService.uploadPhoto(token.substring(7), file, projectId)).result();
+        return JsonResult.success(userService.uploadPhoto(token.substring(7), file)).result();
     }
 
     @GetMapping("/readList")

@@ -36,7 +36,7 @@ public class UserService {
         userMapper.register(userTblEntity);
     }
 
-    public LoginResult login(UserTblEntity userTblEntity) throws BaseException, UnsupportedEncodingException {
+    public LoginResult login(UserTblEntity userTblEntity) throws LoginException, UnsupportedEncodingException {
         LoginResult loginResult = userMapper.login(userTblEntity);
         if(loginResult != null){
             if("root".equals(userTblEntity.getUserPhone())){
@@ -74,7 +74,7 @@ public class UserService {
             throw new LaunchException(400, "token认证失败！");
         }
     }
-    public Map uploadPhoto(String token, MultipartFile file, String projectId) throws BaseException {
+    public Map uploadPhoto(String token, MultipartFile file) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
         if(userTblEntity == null){
             throw new UploadPhotoException(400, "token认证失败！");
@@ -105,14 +105,7 @@ public class UserService {
                 Map<String, String> ret = new HashMap<>();
                 ret.put("url", add);
                 out.close();
-                if(0 != userMapper.updatePhoto(userTblEntity.getUserId(), projectId,add)){
-                    return ret;
-                }
-                else{
-                    throw new UploadPhotoException(400,"项目未知！");
-                }
-
-
+                return ret;
             }
             catch (UploadPhotoException e){
                 throw e;
