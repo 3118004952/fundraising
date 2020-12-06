@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @ControllerAdvice//全局异常处理
 @RestController
-@RequestMapping(value = "/userSide")
+@RequestMapping(value = "/user")
 public class userSide {
     @Autowired
     private UserService userService;
