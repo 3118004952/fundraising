@@ -16,8 +16,11 @@ public class JsonFilter implements Filter, Ordered {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        //判断是否为POST请求
         if("POST".equals(((HttpServletRequest)servletRequest).getMethod())){
+            //判断是否为上传文件
             if(((HttpServletRequest) servletRequest).getRequestURL().indexOf("upload") != -1){
+                //判断content-type是否正确
                 if(((HttpServletRequest)servletRequest).getHeader("Content-Type").indexOf("multipart/form-data") == -1){
                     servletRequest.getRequestDispatcher("/contentTypeFailed").forward(servletRequest, servletResponse);
                 }
@@ -26,6 +29,7 @@ public class JsonFilter implements Filter, Ordered {
                 }
                 return ;
             }
+            //判断content-type是否正确
             if(!"application/json".equals(servletRequest.getContentType())){
                 servletRequest.getRequestDispatcher("/contentTypeFailed").forward(servletRequest, servletResponse);
             }

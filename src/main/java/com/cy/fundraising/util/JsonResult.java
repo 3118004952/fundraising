@@ -38,6 +38,7 @@ public class JsonResult<T> {
         return this;
     }
 
+    //生成返回内容
     public Map<String, Object> result(){
         this.add.put("code", this.code);
         this.add.put("data", this.data);
