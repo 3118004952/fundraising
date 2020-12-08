@@ -27,7 +27,7 @@ public class CustomExtHandler {
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     Map HttpMessageNotReadableException(Exception e, HttpServletRequest request){
         e.printStackTrace();
-        return JsonResult.error(400, "请求内容为空！").result();
+        return JsonResult.error(400, "请求参数错误！").result();
     }
 
     @ExceptionHandler(value = MissingServletRequestParameterException.class)

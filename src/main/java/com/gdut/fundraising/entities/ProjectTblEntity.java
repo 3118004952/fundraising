@@ -25,6 +25,13 @@ public class ProjectTblEntity {
     private String projectPhoto;
     private String projectExplain;
 
+    public String getProjectStartTime(){
+        return projectStartTime.substring(0, 19);
+    }
+    public String getProjectFinishTime(){
+        return projectFinishTime.substring(0, 19);
+    }
+
     public String checkTime(){
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {

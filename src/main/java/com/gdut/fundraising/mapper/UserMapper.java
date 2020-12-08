@@ -1,6 +1,8 @@
 package com.gdut.fundraising.mapper;
 
 import com.gdut.fundraising.dto.LoginResult;
+import com.gdut.fundraising.dto.ReadDonationResult;
+import com.gdut.fundraising.dto.ReadExpenditureResult;
 import com.gdut.fundraising.dto.ReadListResult;
 import com.gdut.fundraising.entities.GiftTblEntity;
 import com.gdut.fundraising.entities.ProjectTblEntity;
@@ -49,7 +51,10 @@ public interface UserMapper {
     @Update("insert into gift_tbl(user_id, gift_id, gift_money, project_id, gift_time) values(#{userId}, #{giftId}, #{giftMoney}, #{projectId}, #{giftTime})")
     int contributionUpdateGiftTbl(GiftTblEntity giftTblEntity);
 
-    @Select("select * from gift_tbl where project_id=#{projectId}")
-    List<GiftTblEntity> readDonation(String projectId);
+    @Select("select * from gift_tbl left join user_tbl on gift_tbl.user_id=user_tbl.user_id where project_id=#{projectId}")
+    List<ReadDonationResult> readDonation(String projectId);
+
+    @Select("select form_user_id, to_user_id, order_operator, order_id, order_money, project_id, order_time, order_explain, user_name to_user_name from order_tbl left join user_tbl on order_tbl.to_user_id=user_tbl.user_id where project_id=#{projectId}")
+    List<ReadExpenditureResult> readExpenditureResult(String projectId);
 
 }

@@ -1,5 +1,6 @@
 package com.gdut.fundraising.controller.manager;
 
+import com.gdut.fundraising.entities.OrderTblEntity;
 import com.gdut.fundraising.exception.BaseException;
 import com.gdut.fundraising.service.ManageService;
 import com.gdut.fundraising.util.JsonResult;
@@ -26,5 +27,11 @@ public class Manager {
         manageService.setProjectState(token.substring(7), param.get("state"), param.get("projectId"));
         return JsonResult.success(null).result();
     }
+
+    @PostMapping("/expenditure")
+    public Map expenditure(@RequestHeader("AUTHORIZATION") String token, @RequestBody OrderTblEntity orderTblEntity){
+        return JsonResult.success(manageService.expenditure(token.substring(7), orderTblEntity)).result();
+    }
+
 
 }

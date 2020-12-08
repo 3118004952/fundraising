@@ -3,18 +3,14 @@ package com.gdut.fundraising.controller.user;
 import com.gdut.fundraising.entities.ProjectTblEntity;
 import com.gdut.fundraising.entities.UserTblEntity;
 import com.gdut.fundraising.exception.BaseException;
-
-import com.gdut.fundraising.exception.RegisterException;
 import com.gdut.fundraising.service.UserService;
 import com.gdut.fundraising.util.JsonResult;
-import com.gdut.fundraising.util.TokenUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @ControllerAdvice//全局异常处理
 @RestController
@@ -29,30 +25,12 @@ public class User {
     }
 
     @PostMapping("/register")
-    public Map register(@RequestBody UserTblEntity userTblEntity) throws Exception{
-        if(userTblEntity.notNullRegister() == null){
-            if(!userService.judgePhoneExist(userTblEntity.getUserPhone())){
-                Map<String, Object> map = new HashMap<>();
-                String token = TokenUtil.getToken(userTblEntity);
-                userTblEntity.setUserToken(token);
-                userTblEntity.setUserId(UUID.randomUUID().toString());
-                userService.register(userTblEntity);
-                map.put("userPhone", userTblEntity.getUserPhone());
-                map.put("token", userTblEntity.getUserToken());
-                return JsonResult.success(map).result();
-            }
-            else{
-                throw new RegisterException(400,"该手机号码已存在!");
-            }
-        }
-        else{
-            throw new RegisterException(400,"部分数据为空!");
-        }
-
+    public Map register(@RequestBody UserTblEntity userTblEntity) throws BaseException{
+        return JsonResult.success(userService.register(userTblEntity)).result();
     }
 
     @PostMapping("/login")
-    public Map login(@RequestBody UserTblEntity userTblEntity) throws Exception{
+    public Map login(@RequestBody UserTblEntity userTblEntity) throws BaseException{
         return JsonResult.success(userService.login(userTblEntity)).result();
     }
 
@@ -86,5 +64,10 @@ public class User {
     @GetMapping("/readDonation")
     public Map readDonation(@RequestParam("projectId") String projectId){
         return JsonResult.success(userService.readDonation(projectId)).result();
+    }
+
+    @GetMapping("/readExpenditure")
+    public Map readExpenditureResult(@RequestParam("projectId") String projectId){
+        return JsonResult.success(userService.readExpenditureResult(projectId)).result();
     }
 }

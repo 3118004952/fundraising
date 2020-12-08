@@ -1,17 +1,15 @@
-package com.gdut.fundraising.entities;
-
+package com.gdut.fundraising.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderTblEntity {
+public class ReadExpenditureResult {
     private String formUserId;
+    private String toUserName;
     private String toUserId;
     private String orderOperator;
     private String orderId;

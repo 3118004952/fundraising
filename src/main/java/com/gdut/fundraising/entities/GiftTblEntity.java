@@ -15,5 +15,8 @@ public class GiftTblEntity {
     private String projectId;
     private String giftTime;
 
+    public String getGiftTime(){
+        return giftTime.substring(0, 19);
+    }
 
 }
