@@ -40,10 +40,10 @@ public interface UserMapper {
     int projectCount();
 
     @Select("select project_id, project_photo, project_people_nums, project_money_now, project_name from project_tbl where project_state>2 and project_state<6 limit ${pageIndex * pageSize}, #{pageSize}")
-    List<ReadListResult> readList(int pageIndex, int pageSize);
+    List<ReadListResult> readProjectList(int pageIndex, int pageSize);
 
     @Select("select * from project_tbl where project_id=#{projectId} and project_state>2 and project_state<6")
-    ProjectTblEntity readDetail(String projectId);
+    ProjectTblEntity readProjectDetail(String projectId);
 
     @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=3")
     int contributionUpdateProject(double money, String projectId);

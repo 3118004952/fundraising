@@ -44,16 +44,16 @@ public class User {
         return JsonResult.success(userService.uploadPhoto(token.substring(7), file)).result();
     }
 
-    @GetMapping("/readList")
-    public Map readList(@RequestParam("pageIndex") int pageIndex, @RequestParam("pageSize") int pageSize){
-        return JsonResult.success(userService.readList(pageIndex , pageSize)).result();
+    @GetMapping("/readProjectList")
+    public Map readProjectList(@RequestParam("pageIndex") int pageIndex, @RequestParam("pageSize") int pageSize){
+        return JsonResult.success(userService.readProjectList(pageIndex , pageSize)).result();
     }
 
 
 
-    @GetMapping("/readDetail")
-    public Map readDetail(@RequestParam("projectId") String projectId){
-        return JsonResult.success(userService.readDetail(projectId)).result();
+    @GetMapping("/readProjectDetail")
+    public Map readProjectDetail(@RequestParam("projectId") String projectId){
+        return JsonResult.success(userService.readProjectDetail(projectId)).result();
     }
 
     @GetMapping("/contribution")

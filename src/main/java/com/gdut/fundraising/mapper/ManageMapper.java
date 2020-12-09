@@ -1,5 +1,6 @@
 package com.gdut.fundraising.mapper;
 
+import com.gdut.fundraising.dto.ReadListResult;
 import com.gdut.fundraising.entities.OrderTblEntity;
 import com.gdut.fundraising.entities.ProjectTblEntity;
 import com.gdut.fundraising.entities.UserTblEntity;
@@ -7,7 +8,18 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.List;
+
 public interface ManageMapper {
+
+    @Select("select count(project_id) from project_tbl where project_state=#{state}")
+    int projectCount(int state);
+
+    @Select("select project_id, project_photo, project_people_nums, project_money_now, project_name from project_tbl where project_state=#{state} limit ${pageIndex * pageSize}, #{pageSize}")
+    List<ReadListResult> readProjectList(int pageIndex, int pageSize, int state);
+
+    @Select("select * from project_tbl where project_id=#{projectId}")
+    ProjectTblEntity readProjectDetail(String projectId);
 
     @Select("select * from user_tbl where user_token=#{token}")
     UserTblEntity selectUserByToken(String token);

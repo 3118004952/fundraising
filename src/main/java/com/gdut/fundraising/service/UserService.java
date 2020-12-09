@@ -147,7 +147,7 @@ public class UserService {
         throw new BaseException(400,"上传的图片为空！");
     }
 
-    public Map readList(int pageIndex , int pageSize){
+    public Map readProjectList(int pageIndex , int pageSize){
         //根据pageSize生成页数
         int totalPage = userMapper.projectCount();
         if(totalPage % pageSize == 0){
@@ -157,7 +157,7 @@ public class UserService {
             totalPage /= pageSize;
             totalPage++;
         }
-        List<ReadListResult> project = userMapper.readList(pageIndex, pageSize);
+        List<ReadListResult> project = userMapper.readProjectList(pageIndex, pageSize);
         Map<String, Object> res = new HashMap<>();
         res.put("totalPage", totalPage);
         res.put("pageSize", pageSize);
@@ -166,8 +166,8 @@ public class UserService {
         return res;
     }
 
-    public ProjectTblEntity readDetail(String projectId){
-        return userMapper.readDetail(projectId);
+    public ProjectTblEntity readProjectDetail(String projectId){
+        return userMapper.readProjectDetail(projectId);
     }
 
     @Transactional

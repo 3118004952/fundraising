@@ -8,7 +8,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter(filterName = "TokenFilter",urlPatterns = {"/user/launch"})
+@WebFilter(filterName = "TokenFilter",urlPatterns = {"/user/launch","/user/uploadPhoto","/user/contribution","/manage/*"})
 public class TokenFilter implements Filter, Ordered {
 
     @Override

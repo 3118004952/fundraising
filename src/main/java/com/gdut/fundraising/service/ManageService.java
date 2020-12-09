@@ -1,6 +1,7 @@
 package com.gdut.fundraising.service;
 
 
+import com.gdut.fundraising.dto.ReadListResult;
 import com.gdut.fundraising.entities.OrderTblEntity;
 import com.gdut.fundraising.entities.ProjectTblEntity;
 import com.gdut.fundraising.entities.UserTblEntity;
@@ -12,8 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -23,6 +23,66 @@ public class ManageService {
     @Resource
     ManageMapper manageMapper;
 
+
+    public Map readProjectList(String token, int pageIndex , int pageSize, int state){
+        //根据pageSize生成页数
+        UserTblEntity userTblEntity = manageMapper.selectUserByToken(token);
+        if (userTblEntity != null && "root".equals(userTblEntity.getUserId().substring(0, 4))){
+            int totalPage = manageMapper.projectCount(state);
+            if(totalPage % pageSize == 0){
+                totalPage /= pageSize;
+            }
+            else{
+                totalPage /= pageSize;
+                totalPage++;
+            }
+            List<ReadListResult> project = manageMapper.readProjectList(pageIndex, pageSize, state);
+            Map<String, Object> res = new HashMap<>();
+            res.put("totalPage", totalPage);
+            res.put("pageSize", pageSize);
+            res.put("pageIndex", pageIndex);
+            res.put("project", project);
+            switch (state){
+                case 0:
+                    res.put("state", "发起");
+                    break;
+                case 1:
+                    res.put("state", "审核");
+                    break;
+                case 2:
+                    res.put("state", "审核成功");
+                    break;
+                case 3:
+                    res.put("state", "募捐");
+                    break;
+                case 4:
+                    res.put("state", "执行");
+                    break;
+                case 5:
+                    res.put("state", "结束");
+                    break;
+                case 6:
+                    res.put("state", "审核失败");
+                    break;
+                default:
+                    res.put("state", "未知状态");
+            }
+            return res;
+        }
+        else{
+            throw new BaseException(400, "token认证失败！");
+        }
+    }
+
+    public ProjectTblEntity readProjectDetail(String token, String projectId){
+        UserTblEntity userTblEntity = manageMapper.selectUserByToken(token);
+        if (userTblEntity != null && "root".equals(userTblEntity.getUserId().substring(0, 4))) {
+            return manageMapper.readProjectDetail(projectId);
+        }
+        else{
+            throw new BaseException(400, "token认证失败！");
+        }
+    }
 
     public void setProjectState(String token, String state, String projectId) throws BaseException {
         if(state == null || projectId == null)
