@@ -33,9 +33,19 @@ public class Manager {
     }
 
     @PostMapping("/setProjectState")
-    public Map setProjectState(@RequestHeader("AUTHORIZATION") String token, @RequestBody Map<String, String> param) throws BaseException {
-        manageService.setProjectState(token.substring(7), param.get("state"), param.get("projectId"));
-        return JsonResult.success(null).result();
+    public Map setProjectState(@RequestHeader("AUTHORIZATION") String token, @RequestBody Map<String, Object> param) throws BaseException {
+        try {
+            return JsonResult.success(manageService.setProjectState(token.substring(7),
+                    (Integer)param.get("nowState"), (Integer)param.get("nextState"),
+                    (String) param.get("projectId"))).result();
+        }
+        catch (BaseException e){
+            throw e;
+        }
+        catch (Exception e){
+            throw new BaseException(400, "字段格式错误！");
+        }
+
     }
 
     @PostMapping("/expenditure")
