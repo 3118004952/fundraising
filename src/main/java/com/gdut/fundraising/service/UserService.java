@@ -79,7 +79,6 @@ public class UserService {
         }
     }
 
-
     public ProjectTblEntity launch(String token, ProjectTblEntity projectTblEntity) throws BaseException {
         //获取账户信息
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
@@ -103,6 +102,7 @@ public class UserService {
             throw new BaseException(400, "token认证失败！");
         }
     }
+
     public Map uploadPhoto(String token, MultipartFile file) throws BaseException {
         UserTblEntity userTblEntity = userMapper.selectUserByToken(token);
         //判断账户是否存在
@@ -148,15 +148,8 @@ public class UserService {
     }
 
     public Map readProjectList(int pageIndex , int pageSize){
-        //根据pageSize生成页数
+        //获取总数据条数
         int totalPage = userMapper.projectCount();
-        if(totalPage % pageSize == 0){
-            totalPage /= pageSize;
-        }
-        else{
-            totalPage /= pageSize;
-            totalPage++;
-        }
         List<ReadListResult> project = userMapper.readProjectList(pageIndex, pageSize);
         Map<String, Object> res = new HashMap<>();
         res.put("totalPage", totalPage);

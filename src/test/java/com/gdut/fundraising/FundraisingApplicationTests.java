@@ -21,8 +21,8 @@ class FundraisingApplicationTests {
     UserMapper userMapper;
     @Test
     void contextLoads() throws IOException {
-        ReadDonationResult readDonationResult = new ReadDonationResult();
-        readDonationResult.setUserName("陈余");
-        System.out.println("陈余".charAt(1));
+        char s = (char)200;
+        System.out.println(s);
     }
+
 }

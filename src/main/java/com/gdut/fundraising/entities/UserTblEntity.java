@@ -9,12 +9,34 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserTblEntity {
+    /**
+     * 用户id  UUID生成
+     * 主键
+     */
     private String userId;
+    /**
+     * 用户电话号码
+     */
     private String userPhone;
+    /**
+     * 用户密码
+     */
     private String userPassword;
+    /**
+     * 用户名字
+     */
     private String userName;
+    /**
+     * 用户地址
+     */
     private String userAddress;
+    /**
+     * 用户银行卡号码
+     */
     private String userBank;
+    /**
+     * 登录后的token
+     */
     private String userToken;
 
     public String notNullRegister(){
