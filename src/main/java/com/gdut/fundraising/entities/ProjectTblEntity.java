@@ -13,16 +13,55 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProjectTblEntity {
+    /**
+     * 发起项目的用户的id UUID生成
+     */
     private String userId;
+    /**
+     * 项目的id UUID生成
+     * 主键
+     */
     private String projectId;
+    /**
+     * 项目开始时间  Date类型
+     * 格式：yyyy-MM-dd HH:mm:ss
+     */
     private String projectStartTime;
+    /**
+     * 项目结束时间  Date类型
+     * 格式：yyyy-MM-dd HH:mm:ss
+     */
     private String projectFinishTime;
+    /**
+     * 项目的状态
+     * 状态：0-发起；1-审核；6-审核失败；2-审核成功；3-募捐；4-执行；5-项目结束
+     * 状态机：0->1->2->3->4->5;
+     *       1->6
+     */
     private int projectState;
+    /**
+     * 项目名字
+     */
     private String projectName;
+    /**
+     * 募捐人次
+     */
     private int projectPeopleNums;
+    /**
+     * 项目目标募捐钱数
+     */
     private double projectMoneyTarget;
+    /**
+     * 项目当前获得钱数
+     */
     private double projectMoneyNow;
+    /**
+     * 项目图片链接
+     */
     private String projectPhoto;
+    /**
+     * 项目简介
+     */
     private String projectExplain;
 
     public String getProjectStartTime(){
