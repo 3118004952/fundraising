@@ -27,11 +27,9 @@ public interface ManageMapper {
     @Select("select * from project_tbl where project_id=#{projectId}")
     ProjectTblEntity selectProjectById(String projectId);
 
-    @Update("update project_tbl set project_state=project_state+1 where project_id=#{projectId}")
-    int SetProjectToNext(String projectId);
+    @Update("update project_tbl set project_state=#{nextState} where project_id=#{projectId} and project_state=#{nowState}")
+    int SetProjectToNext(String projectId, int nowState, int nextState);
 
-    @Update("update project_tbl set project_state=6 where project_id=#{projectId}")
-    int SetProjectToError(String projectId);
 
     @Select("select count(project_id) from project_tbl where project_id=#{projectId} and user_id=#{formUserId}")
     int selectProjectByIdAndUser(OrderTblEntity orderTblEntity);

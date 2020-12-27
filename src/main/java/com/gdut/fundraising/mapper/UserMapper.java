@@ -45,7 +45,7 @@ public interface UserMapper {
     @Select("select * from project_tbl where project_id=#{projectId} and project_state>2 and project_state<6")
     ProjectTblEntity readProjectDetail(String projectId);
 
-    @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=3")
+    @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=2")
     int contributionUpdateProject(double money, String projectId);
 
     @Update("insert into gift_tbl(user_id, gift_id, gift_money, project_id, gift_time) values(#{userId}, #{giftId}, #{giftMoney}, #{projectId}, #{giftTime})")
