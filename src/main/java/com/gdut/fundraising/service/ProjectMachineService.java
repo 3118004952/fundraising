@@ -13,4 +13,5 @@ public interface ProjectMachineService {
      * @return
      */
     boolean checkNextState(Integer nowState, Integer nextState);
+
 }

@@ -1,5 +1,6 @@
-package com.gdut.fundraising.controller.user;
+package com.gdut.fundraising.controller.impl;
 
+import com.gdut.fundraising.controller.User;
 import com.gdut.fundraising.entities.ProjectTblEntity;
 import com.gdut.fundraising.entities.UserTblEntity;
 import com.gdut.fundraising.exception.BaseException;
@@ -12,10 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
-@ControllerAdvice//全局异常处理
 @RestController
 @RequestMapping(value = "/user")
-public class User {
+public class UserImpl implements User {
     @Autowired
     private UserService userService;
 
@@ -38,6 +38,7 @@ public class User {
     public Map launch(@RequestHeader("AUTHORIZATION")String token,  @RequestBody ProjectTblEntity projectTblEntity) throws BaseException {
         return JsonResult.success(userService.launch(token.substring(7), projectTblEntity)).result();
     }
+
     @RequestMapping("/uploadPhoto")
     public Map uploadAvatar(@RequestHeader("AUTHORIZATION")String token, @RequestParam("photo") MultipartFile file) throws BaseException {
 
@@ -48,8 +49,6 @@ public class User {
     public Map readProjectList(@RequestParam("pageIndex") int pageIndex, @RequestParam("pageSize") int pageSize){
         return JsonResult.success(userService.readProjectList(pageIndex , pageSize)).result();
     }
-
-
 
     @GetMapping("/readProjectDetail")
     public Map readProjectDetail(@RequestParam("projectId") String projectId){

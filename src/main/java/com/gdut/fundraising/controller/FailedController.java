@@ -3,25 +3,26 @@ package com.gdut.fundraising.controller;
 
 import com.gdut.fundraising.exception.BaseException;
 import com.gdut.fundraising.util.JsonResult;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
+/***
+ * 返回部分错误信息
+ */
+public interface FailedController {
 
-@ControllerAdvice//全局异常处理
-@ResponseBody//返回json
-@RestController
-public class FailedController {
-    //转发filter处产生的错误
-    @RequestMapping("/tokenFailed")
-    public JsonResult requestFailed() throws BaseException {
-        throw new BaseException(400, "未携带token！");
-    }
-    //转发filter处产生的错误
-    @RequestMapping("/contentTypeFailed")
-    public JsonResult contentTypeFailed() throws BaseException {
-        throw new BaseException(400, "content-type未设置！");
-    }
+    /***
+     * 转发filter处产生的token错误
+     * @RequestMapping("/tokenFailed")
+     * @return Map
+     * @throws BaseException
+     */
+    JsonResult requestFailed() throws BaseException;
+
+    /***
+     * 转发filter处产生的contentTypeFailed错误
+     * @RequestMapping("/contentTypeFailed")
+     * @return Map
+     * @throws BaseException
+     */
+    JsonResult contentTypeFailed() throws BaseException ;
 
 }

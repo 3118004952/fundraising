@@ -1,5 +1,6 @@
-package com.gdut.fundraising.controller.manager;
+package com.gdut.fundraising.controller.impl;
 
+import com.gdut.fundraising.controller.Manager;
 import com.gdut.fundraising.entities.OrderTblEntity;
 import com.gdut.fundraising.exception.BaseException;
 import com.gdut.fundraising.service.ManageService;
@@ -9,10 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@ControllerAdvice
 @RestController
 @RequestMapping("/manage")
-public class Manager {
+public class ManagerImpl implements Manager {
 
     @Autowired
     ManageService manageService;
