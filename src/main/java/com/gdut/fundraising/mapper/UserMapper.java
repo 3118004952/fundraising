@@ -36,13 +36,13 @@ public interface UserMapper {
     @Update("update project_tbl set project_photo=#{add} where project_id=#{projectId} and user_id=#{userId}")
     int updatePhoto(String userId, String projectId, String add);
 
-    @Select("select count(project_id) from project_tbl where project_state>2 and project_state<6")
+    @Select("select count(project_id) from project_tbl where project_state>=2 and project_state<6")
     int projectCount();
 
-    @Select("select project_id, project_photo, project_people_nums, project_money_now, project_name from project_tbl where project_state>2 and project_state<6 limit ${pageIndex * pageSize}, #{pageSize}")
+    @Select("select project_id, project_photo, project_people_nums, project_money_now, project_name from project_tbl where project_state>=2 and project_state<6 limit ${pageIndex * pageSize}, #{pageSize}")
     List<ReadListResult> readProjectList(int pageIndex, int pageSize);
 
-    @Select("select * from project_tbl where project_id=#{projectId} and project_state>2 and project_state<6")
+    @Select("select * from project_tbl where project_id=#{projectId} and project_state>=2 and project_state<6")
     ProjectTblEntity readProjectDetail(String projectId);
 
     @Update("update project_tbl set project_money_now=project_money_now+#{money}, project_people_nums=project_people_nums+1 where project_id=#{projectId} and project_state=2")
