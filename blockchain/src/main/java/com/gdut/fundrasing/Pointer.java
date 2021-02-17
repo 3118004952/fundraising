@@ -13,6 +13,16 @@ public class Pointer {
      */
     private long n;
 
+//    @Override
+//    public boolean equals(Object obj) {
+//        if(!(obj instanceof Pointer)){
+//            return false;
+//        }
+//        Pointer p=(Pointer) obj;
+//        //必须交易id相等 并且第n个输出单元也相等
+//        return (p.txId.equals(txId)&&p.n==n);
+//    }
+
     public String getTxId() {
         return txId;
     }

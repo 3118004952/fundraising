@@ -1,5 +1,6 @@
 package com.gdut.fundrasing;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +34,16 @@ public class Transaction {
     boolean isCoinBase;
 
     Date lockTime;
+
+    public Transaction(){
+        inList=new ArrayList<>();
+        outList=new ArrayList<>();
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(fee)+isCoinBase+inList.toString()+outList.toString();
+    }
 
     public List<Vin> getInList() {
         return inList;

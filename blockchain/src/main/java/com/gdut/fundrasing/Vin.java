@@ -1,5 +1,7 @@
 package com.gdut.fundrasing;
 
+import java.security.PublicKey;
+
 /**
  * 交易输入单元
  */
@@ -12,7 +14,7 @@ public class Vin {
     /**
      * 交易创建者者的公钥
      */
-    private byte[] publicKey;
+    private PublicKey publicKey;
 
     /**
      * 指向交易创建者的UTXO
@@ -27,11 +29,11 @@ public class Vin {
         this.signature = signature;
     }
 
-    public byte[] getPublicKey() {
+    public PublicKey getPublicKey() {
         return publicKey;
     }
 
-    public void setPublicKey(byte[] publicKey) {
+    public void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
     }
 

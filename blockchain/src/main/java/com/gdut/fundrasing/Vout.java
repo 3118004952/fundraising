@@ -14,6 +14,11 @@ public class Vout {
      */
     private long money;
 
+    @Override
+    public String toString() {
+        return toAddress+money;
+    }
+
     public String getToAddress() {
         return toAddress;
     }

@@ -16,6 +16,14 @@ public interface TransactionService {
      */
     Transaction createTransaction(Peer peer,String toAddress,long money);
 
+
+    /**
+     * 验证交易
+     * @param transaction
+     * @return
+     */
+    public boolean verifyTransaction(Peer peer,Transaction transaction);
+
     /**
      * 创币服务
      * @param peer

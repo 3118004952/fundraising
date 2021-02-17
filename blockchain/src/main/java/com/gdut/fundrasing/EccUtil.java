@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.springframework.util.Assert;
 
 
-
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.util.regex.Matcher;
@@ -19,11 +18,12 @@ public class EccUtil {
 
     /**
      * 产生密钥
+     *
      * @return
      */
-    public static KeyPair generateKeys()  {
+    public static KeyPair generateKeys() {
         KeyPairGenerator keyPairGenerator = null;
-        ECGenParameterSpec ecGenParameterSpec=null;
+        ECGenParameterSpec ecGenParameterSpec = null;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance("EC");
             //secp256k1算法
@@ -39,6 +39,7 @@ public class EccUtil {
 
     /**
      * 产生数字签名
+     *
      * @param algorithm
      * @param data
      * @param key
@@ -54,6 +55,7 @@ public class EccUtil {
 
     /**
      * 校验签名
+     *
      * @param algorithm
      * @param data
      * @param key
@@ -75,16 +77,16 @@ public class EccUtil {
      * <P>再用ripeMD160加密</P>
      * <p>添加0x00到字节头</p>
      * <p>BASE58编码</p>
+     *
      * @return
      */
-    public static String getAddress(PublicKey publicKey)  {
+    public static String generateAddress(byte[] publicKey) {
         MessageDigest sha = null;
-        String result="";
+        String result = "";
         try {
             sha = MessageDigest.getInstance("SHA-256");
 
-            byte[] s1 = sha.digest(publicKey.getEncoded());
-            System.out.println("  sha: " + byte2HexString(s1).toUpperCase());
+            byte[] s1 = sha.digest(publicKey);
 //
 //            s1 = sha.digest(s1);
 //            System.out.println("  sha2: " + byte2HexString(s1).toUpperCase());
@@ -98,14 +100,14 @@ public class EccUtil {
             //r2开头填充0x00
             byte[] r2 = new byte[r1.length + 1];
             r2[0] = 0;
-            for(int i=0;i<r1.length;++i){
-                r2[i+1]=r1[i];
+            for (int i = 0; i < r1.length; ++i) {
+                r2[i + 1] = r1[i];
             }
-            System.out.println("  rmd: " + byte2HexString(r2).toUpperCase());
+//            System.out.println("  rmd: " + byte2HexString(r2).toUpperCase());
+//
+//            System.out.println("  adr: " + Base58.encode(r2));
 
-            System.out.println("  adr: " + Base58.encode(r2));
-
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return "";
@@ -113,87 +115,76 @@ public class EccUtil {
 
     /**
      * byte转String
+     *
      * @param b
      * @return
      */
-    public  static String byte2HexString( byte[] b) {
+    public static String byte2HexString(byte[] b) {
         String a = "";
         for (int i = 0; i < b.length; i++) {
             String hex = Integer.toHexString(b[i] & 0xFF);
             if (hex.length() == 1) {
                 hex = '0' + hex;
             }
-            a = a+hex;
+            a = a + hex;
         }
 
         return a;
     }
 
-    @Test
-    public void testSignVerify() throws Exception {
-        // 需要签名的数据
-        byte[] data = new byte[1000];
-        for (int i=0; i<data.length; i++)
-            data[i] = 0xa;
-
-        // 生成秘钥，在实际业务中，应该加载秘钥
-        KeyPair keyPair = generateKeys();
-        //KeyPair keyPair = KeyUtil.createKeyPairGenerator("secp256k1");
-        PublicKey publicKey1 = keyPair.getPublic();
-        PrivateKey privateKey1 = keyPair.getPrivate();
-
-        // 生成第二对秘钥，用于测试
-        keyPair = generateKeys();
-       // keyPair = KeyUtil.createKeyPairGenerator("secp256k1");
-        PublicKey publicKey2 = keyPair.getPublic();
-        PrivateKey privateKey2 = keyPair.getPrivate();
-
-        // 计算签名
-        byte[] sign1 = signData("SHA256withECDSA", data, privateKey1);
-        byte[] sign2 = signData("SHA256withECDSA", data, privateKey1);
-
-        // sign1和sign2的内容不同，因为ECDSA在计算的时候，加入了随机数k，因此每次的值不一样
-        // 随机数k需要保密，并且每次不同
-
-
-        // 用对应的公钥验证签名，必须返回true
-        Assert.isTrue(verifySign("SHA256withECDSA", data, publicKey1, sign1),"error");
-        // 数据被篡改，返回false
-        data[1] = 0xb;
-        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey1, sign1),"error");
-        data[1] = 0xa;
-
-        Assert.isTrue(verifySign("SHA256withECDSA", data, publicKey1, sign1),"error");
-        // 签名被篡改，返回false
-        // 签名为DER格式，前三个字节是标识和数据长度，如果修改了这三个会抛出异常，无效签名格式
-        sign1[20] = (byte)~sign1[20];
-        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey1, sign1),"error");
-
-        // 使用其他公钥验证，返回false
-        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey2, sign1),"error");
-    }
-    public static void main(String[] args) {
-        KeyPair keyPair = generateKeys();
-        String addr = getAddress(keyPair.getPublic());
-
-        // BTC地址合法校验
-
-        if (!(preMatch("(1|3)[a-zA-Z1-9]{26,33}\\z/", addr))) {
-            System.out.println("false");; //满足if代表地址不合法
-
-        }else{
-            System.out.println("true");
-        }
+    /**
+     * 产生加密信息内容
+     *
+     * @param s
+     * @return
+     */
+    public static byte[] buildMessage(String s) {
+        return Sha256Util.doubleSHA256(s).getBytes();
     }
 
-    private static boolean preMatch(String regx,String str){
-        Pattern pattern = Pattern.compile(regx);
-        // 忽略大小写的写法
-        // Pattern pat = Pattern.compile(regEx, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(str);
-        // 字符串是否与正则表达式相匹配
-        boolean rs = matcher.matches();
-        return rs;
-    }
+//    @Test
+//    public void testSignVerify() throws Exception {
+//        // 需要签名的数据
+//        byte[] data = new byte[1000];
+//        for (int i = 0; i < data.length; i++)
+//            data[i] = 0xa;
+//
+//        // 生成秘钥，在实际业务中，应该加载秘钥
+//        KeyPair keyPair = generateKeys();
+//        //KeyPair keyPair = KeyUtil.createKeyPairGenerator("secp256k1");
+//        PublicKey publicKey1 = keyPair.getPublic();
+//        PrivateKey privateKey1 = keyPair.getPrivate();
+//
+//        // 生成第二对秘钥，用于测试
+//        keyPair = generateKeys();
+//        // keyPair = KeyUtil.createKeyPairGenerator("secp256k1");
+//        PublicKey publicKey2 = keyPair.getPublic();
+//        PrivateKey privateKey2 = keyPair.getPrivate();
+//
+//        // 计算签名
+//        byte[] sign1 = signData("SHA256withECDSA", data, privateKey1);
+//        byte[] sign2 = signData("SHA256withECDSA", data, privateKey1);
+//
+//        // sign1和sign2的内容不同，因为ECDSA在计算的时候，加入了随机数k，因此每次的值不一样
+//        // 随机数k需要保密，并且每次不同
+//
+//
+//        // 用对应的公钥验证签名，必须返回true
+//        Assert.isTrue(verifySign("SHA256withECDSA", data, publicKey1, sign1), "error");
+//        // 数据被篡改，返回false
+//        data[1] = 0xb;
+//        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey1, sign1), "error");
+//        data[1] = 0xa;
+//
+//        Assert.isTrue(verifySign("SHA256withECDSA", data, publicKey1, sign1), "error");
+//        // 签名被篡改，返回false
+//        // 签名为DER格式，前三个字节是标识和数据长度，如果修改了这三个会抛出异常，无效签名格式
+//        sign1[20] = (byte) ~sign1[20];
+//        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey1, sign1), "error");
+//
+//        // 使用其他公钥验证，返回false
+//        Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey2, sign1), "error");
+//    }
+
 
 }

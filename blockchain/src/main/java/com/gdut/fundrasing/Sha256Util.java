@@ -25,6 +25,16 @@ public class Sha256Util {
         }
         return encodestr;
     }
+
+    /**
+     * 俩次SHA256加密
+     * @param str
+     * @return
+     */
+    public static String doubleSHA256(String str){
+        return getSHA256(getSHA256(str));
+    }
+
     /**
      * 将byte转为16进制
      * @param bytes
@@ -45,6 +55,9 @@ public class Sha256Util {
     }
 
     public static void main(String[] args) {
-        System.out.println(getSHA256("11132423fasdfsdfgsdg"));
+        System.out.println( getSHA256("11132423fasdfsdfgsdg"));
+
+        System.out.println(getSHA256(getSHA256("11132423fasdfsdfgsdg")));
+        System.out.println(doubleSHA256("11132423fasdfsdfgsdg"));
     }
 }
