@@ -1,14 +1,26 @@
 package com.gdut.fundrasing;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
 
+
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * 椭圆曲线加密工具类
+ * 用来产生密钥以及产生、验证数字签名
+ */
 public class EccUtil {
 
+    /**
+     * 产生密钥
+     * @return
+     */
     public static KeyPair generateKeys()  {
         KeyPairGenerator keyPairGenerator = null;
         ECGenParameterSpec ecGenParameterSpec=null;
@@ -21,14 +33,18 @@ public class EccUtil {
             e.printStackTrace();
         }
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
-//        // 获取公钥
-//        System.out.println(keyPair.getPublic());
-//        // 获取私钥
-//        System.out.println(keyPair.getPrivate().getEncoded());
         return keyPair;
 
     }
 
+    /**
+     * 产生数字签名
+     * @param algorithm
+     * @param data
+     * @param key
+     * @return
+     * @throws Exception
+     */
     public static byte[] signData(String algorithm, byte[] data, PrivateKey key) throws Exception {
         Signature signer = Signature.getInstance(algorithm);
         signer.initSign(key);
@@ -36,11 +52,81 @@ public class EccUtil {
         return (signer.sign());
     }
 
+    /**
+     * 校验签名
+     * @param algorithm
+     * @param data
+     * @param key
+     * @param sig
+     * @return
+     * @throws Exception
+     */
     public static boolean verifySign(String algorithm, byte[] data, PublicKey key, byte[] sig) throws Exception {
         Signature signer = Signature.getInstance(algorithm);
         signer.initVerify(key);
         signer.update(data);
         return (signer.verify(sig));
+    }
+
+
+    /**
+     * 获取钱包地址
+     * <P>先用sha26加密</>
+     * <P>再用ripeMD160加密</P>
+     * <p>添加0x00到字节头</p>
+     * <p>BASE58编码</p>
+     * @return
+     */
+    public static String getAddress(PublicKey publicKey)  {
+        MessageDigest sha = null;
+        String result="";
+        try {
+            sha = MessageDigest.getInstance("SHA-256");
+
+            byte[] s1 = sha.digest(publicKey.getEncoded());
+            System.out.println("  sha: " + byte2HexString(s1).toUpperCase());
+//
+//            s1 = sha.digest(s1);
+//            System.out.println("  sha2: " + byte2HexString(s1).toUpperCase());
+
+            //加入BouncyCastleProvider的支持
+            Security.addProvider(new BouncyCastleProvider());
+
+            MessageDigest rmd = MessageDigest.getInstance("RipeMD160");
+            byte[] r1 = rmd.digest(s1);
+
+            //r2开头填充0x00
+            byte[] r2 = new byte[r1.length + 1];
+            r2[0] = 0;
+            for(int i=0;i<r1.length;++i){
+                r2[i+1]=r1[i];
+            }
+            System.out.println("  rmd: " + byte2HexString(r2).toUpperCase());
+
+            System.out.println("  adr: " + Base58.encode(r2));
+
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * byte转String
+     * @param b
+     * @return
+     */
+    public  static String byte2HexString( byte[] b) {
+        String a = "";
+        for (int i = 0; i < b.length; i++) {
+            String hex = Integer.toHexString(b[i] & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            a = a+hex;
+        }
+
+        return a;
     }
 
     @Test
@@ -87,8 +173,27 @@ public class EccUtil {
         Assert.isTrue(!verifySign("SHA256withECDSA", data, publicKey2, sign1),"error");
     }
     public static void main(String[] args) {
-        generateKeys();
+        KeyPair keyPair = generateKeys();
+        String addr = getAddress(keyPair.getPublic());
+
+        // BTC地址合法校验
+
+        if (!(preMatch("(1|3)[a-zA-Z1-9]{26,33}\\z/", addr))) {
+            System.out.println("false");; //满足if代表地址不合法
+
+        }else{
+            System.out.println("true");
+        }
     }
 
+    private static boolean preMatch(String regx,String str){
+        Pattern pattern = Pattern.compile(regx);
+        // 忽略大小写的写法
+        // Pattern pat = Pattern.compile(regEx, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(str);
+        // 字符串是否与正则表达式相匹配
+        boolean rs = matcher.matches();
+        return rs;
+    }
 
 }
