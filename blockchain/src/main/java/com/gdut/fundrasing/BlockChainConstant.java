@@ -12,5 +12,10 @@ public class BlockChainConstant {
      */
     public static long INIT_MONEY=100000;
 
+    /**
+     * 版本
+     */
+    public static String VERSION="1.0.0";
+
 
 }

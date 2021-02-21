@@ -4,6 +4,8 @@ import com.gdut.fundrasing.*;
 import com.gdut.fundrasing.BlockChainConstant;
 import com.gdut.fundrasing.Service.TransactionService;
 
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.security.PrivateKey;
@@ -12,12 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-
+@Service
+@ComponentScan(value = "com.gdut.fundrasing")
 public class TransactionServiceImpl implements TransactionService {
 
     private static String ALGORITHM_NAME = "SHA256withECDSA";
 
     /**
+     * 创建交易
      * @param peer
      * @param toAddress
      * @param money
@@ -110,6 +114,12 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+    /**
+     * 验证交易
+     * @param peer
+     * @param transaction
+     * @return
+     */
     @Override
     public boolean verifyTransaction(Peer peer, Transaction transaction) {
         //校验基本信息
@@ -136,6 +146,13 @@ public class TransactionServiceImpl implements TransactionService {
         return true;
     }
 
+    /**
+     * 验证地址跟签名
+     * @param vin
+     * @param utxo
+     * @param voutList
+     * @return
+     */
     private boolean verifyAddressAndSignature(Vin vin, UTXO utxo, List<Vout> voutList) {
         //根据输入单元的公钥生成地址
         String address = EccUtil.generateAddress(vin.getPublicKey().getEncoded());
@@ -196,6 +213,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     /**
+     * 创币交易
      * @param peer
      * @param toAddress
      * @param money
