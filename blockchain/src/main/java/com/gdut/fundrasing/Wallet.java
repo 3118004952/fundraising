@@ -2,7 +2,7 @@ package com.gdut.fundrasing;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
+
 import java.util.List;
 
 /**
@@ -12,17 +12,13 @@ public class Wallet {
     /**
      * 密钥对列表
      */
-    private List<KeyPair> keyPairList;
+    private KeyPair keyPair;
 
     /**
      * 钱包地址列表
      */
-    private List<String> address;
+    private String address;
 
-    public Wallet() {
-        keyPairList = new ArrayList<>();
-        address = new ArrayList<>();
-    }
 
     /**
      * 产生钱包新的地址跟密钥对
@@ -37,7 +33,7 @@ public class Wallet {
      */
     private KeyPair generateKey() {
         KeyPair keyPair = EccUtil.generateKeys();
-        keyPairList.add(keyPair);
+        this.keyPair=keyPair;
         return keyPair;
     }
 
@@ -47,22 +43,22 @@ public class Wallet {
      * @param publicKey
      */
     private void generateAddress(PublicKey publicKey) {
-        address.add(EccUtil.generateAddress(publicKey.getEncoded()));
+        this.address=EccUtil.generateAddress(publicKey.getEncoded());
     }
 
-    public List<KeyPair> getKeyPairList() {
-        return keyPairList;
+    public KeyPair getKeyPair() {
+        return keyPair;
     }
 
-    public void setKeyPairList(List<KeyPair> keyPairList) {
-        this.keyPairList = keyPairList;
+    public void setKeyPair(KeyPair keyPair) {
+        this.keyPair = keyPair;
     }
 
-    public List<String> getAddress() {
+    public String getAddress() {
         return address;
     }
 
-    public void setAddress(List<String> address) {
+    public void setAddress(String address) {
         this.address = address;
     }
 }

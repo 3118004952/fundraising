@@ -4,6 +4,8 @@ import com.gdut.fundrasing.*;
 import com.gdut.fundrasing.BlockChainConstant;
 import com.gdut.fundrasing.Service.TransactionService;
 
+import com.gdut.fundrasing.Service.UTXOService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -11,6 +13,7 @@ import org.springframework.util.ObjectUtils;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -20,8 +23,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     private static String ALGORITHM_NAME = "SHA256withECDSA";
 
+    private UTXOService utxoService;
+
     /**
      * 创建交易
+     *
      * @param peer
      * @param toAddress
      * @param money
@@ -29,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public Transaction createTransaction(Peer peer, String toAddress, long money) {
-        long balance = peer.getBalance();
+        long balance = peer.getBalance(peer.getWallet().getAddress());
         //余额不足
         if (balance < money) {
             return null;
@@ -37,9 +43,9 @@ public class TransactionServiceImpl implements TransactionService {
         List<UTXO> ownUTXOList = new ArrayList<>();
         long amount = 0;
         //把相关的输入单元加入到交易中
-        for (UTXO utxo : peer.getOwnUTXOHashMap().values()) {
-            //如果已经消费了则跳过
-            if (utxo.isSpent()) {
+        for (UTXO utxo : peer.getUTXOHashMap().values()) {
+            //如果已经消费了则跳过 或者地址不相等的
+            if (utxo.isSpent()||!utxo.getVout().getToAddress().equals(peer.getWallet().getAddress())) {
                 continue;
             }
             amount += utxo.getVout().getMoney();
@@ -62,27 +68,17 @@ public class TransactionServiceImpl implements TransactionService {
             Vout ownOut = new Vout();
             ownOut.setMoney(amount - money);
             //设置最新的地址
-            ownOut.setToAddress(ownWallet.getAddress().get(ownWallet.getAddress().size() - 1));
+            ownOut.setToAddress(ownWallet.getAddress());
             transaction.getOutList().add(ownOut);
         }
 
         //之前在ownUTXOList里的utxo将变成输入单元
         for (UTXO utxo : ownUTXOList) {
+            //找出对应的钱包地址、公钥、私钥
             String address = utxo.getVout().getToAddress();
-            int index = -1;
-            for (int i = 0; i < ownWallet.getAddress().size(); ++i) {
-                if (address.equals(ownWallet.getAddress().get(i))) {
-                    index = i;
-                    break;
-                }
-            }
-            //找不到该地址，该地址不合法
-            if (index == -1) {
-                return null;
-            }
-            //根据钱包地址找出对应的公钥和私钥
-            PublicKey publicKey = ownWallet.getKeyPairList().get(index).getPublic();
-            PrivateKey privateKey = ownWallet.getKeyPairList().get(index).getPrivate();
+
+            PublicKey publicKey = ownWallet.getKeyPair().getPublic();
+            PrivateKey privateKey = ownWallet.getKeyPair().getPrivate();
 
             Vin vin = new Vin();
             //设置公钥
@@ -116,6 +112,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * 验证交易
+     *
      * @param peer
      * @param transaction
      * @return
@@ -130,11 +127,17 @@ public class TransactionServiceImpl implements TransactionService {
         if (verifyDoublePayment(peer, transaction)) {
             return false;
         }
+
+        //如果是创币交易,则不需要校验输入单元，因为其输入单元为空
+        if (transaction.isCoinBase()) {
+            return true;
+        }
+
         for (Vin vin : transaction.getInList()) {
             //查找该输入单元对应的utxo，如果不存在该输入单元的utxo，则加入到孤立交易池中
             UTXO utxo = peer.getUTXOHashMap().get(vin.getToSpent());
-            if(utxo==null){
-                peer.getOrphanPool().put(vin.getToSpent().getTxId(),transaction);
+            if (utxo == null) {
+                peer.getOrphanPool().put(vin.getToSpent().getTxId(), transaction);
                 return false;
             }
             //校验地址跟数字签名
@@ -148,6 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * 验证地址跟签名
+     *
      * @param vin
      * @param utxo
      * @param voutList
@@ -214,6 +218,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * 创币交易
+     *
      * @param peer
      * @param toAddress
      * @param money
@@ -227,8 +232,8 @@ public class TransactionServiceImpl implements TransactionService {
         Vout vout = new Vout();
         List<Vout> voutList = new ArrayList<>();
         //设置地址
-        vout.setToAddress(peer.getWallet().getAddress().get(peer.getWallet().getAddress().size() - 1));
-        vout.setMoney(BlockChainConstant.INIT_MONEY);
+        vout.setToAddress(peer.getWallet().getAddress());
+        vout.setMoney(money);
         voutList.add(vout);
         vinList.add(vin);
         //创币交易没有输入单元，但为了保持一致，随便填充一个输入单元，签名默认使用32位随机字符串
@@ -242,6 +247,120 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setId(Sha256Util.doubleSHA256(transaction.toString()));
 
         return transaction;
+    }
+
+    /**
+     * 找到输入单元对应的定位指针
+     *
+     * @param txs
+     * @return
+     */
+    @Override
+    public List<Pointer> findVinPointerFromTxs(List<Transaction> txs) {
+        if(txs.size()==0){
+            return new ArrayList<>();
+        }
+        List<Pointer> pointers = new ArrayList<>();
+        for (Transaction t : txs) {
+            for (Vin vin : t.getInList()) {
+                pointers.add(vin.getToSpent());
+            }
+        }
+        return pointers;
+    }
+
+    /**
+     * 返回被删除的utxo集合
+     *
+     * @param utxoHashMap
+     * @param txs
+     * @return
+     */
+    @Override
+    public HashMap<Pointer, UTXO> removeSpentUTXOFromTxs(HashMap<Pointer, UTXO> utxoHashMap, List<Transaction> txs) {
+        List<Pointer> pointers = findVinPointerFromTxs(txs);
+        return utxoService.deleteUTXOByPointer(utxoHashMap, pointers);
+    }
+
+    /**
+     * 添加utxo到utxo map
+     * @param utxoHashMap
+     * @param txs
+     */
+    @Override
+    public void addUTXOFromTxsToMap(HashMap<Pointer, UTXO> utxoHashMap, List<Transaction> txs) {
+        List<UTXO> utxoList= findUTXOFromTxsInBlock(txs);
+        utxoService.addUTXOToMap(utxoHashMap,utxoList);
+    }
+
+    /**
+     * 找到输出单元的定位指针
+     * @param txs
+     * @return
+     */
+    @Override
+    public List<Pointer> findVoutPointerFromTxs(List<Transaction> txs) {
+        List<Pointer> pointerList=new ArrayList<>();
+        for(Transaction t:txs){
+            for(int i=0;i<t.getOutList().size();++i){
+                pointerList.add(new Pointer(t.getId(),i));
+            }
+        }
+        return pointerList;
+    }
+
+    /**
+     * 删除交易池中的交易，并返回被删除的交易用于备份，后续可回滚
+     * @param pool
+     * @param txs
+     * @return
+     */
+    @Override
+    public HashMap<String, Transaction> removeTransactionFromTransactionPool(HashMap<String, Transaction> pool,
+                                                                             List<Transaction> txs) {
+        HashMap<String,Transaction> deletedTransaction=new HashMap<>();
+        for(Transaction t:txs){
+            if(pool.containsKey(t.getId())){
+                deletedTransaction.put(t.getId(),t);
+                pool.remove(t.getId());
+            }
+        }
+        return deletedTransaction;
+    }
+
+    private List<UTXO> findUTXOFromTxsInBlock(List<Transaction> txs){
+        List<UTXO> utxoList = new ArrayList<>();
+        for (Transaction t : txs) {
+            for(int i=0;i<t.getOutList().size();++i){
+                UTXO utxo=new UTXO();
+                utxo.setSpent(false);
+                utxo.setVout(t.getOutList().get(i));
+                utxo.setConfirmed(true);
+                utxo.setCoinBase(t.isCoinBase());
+                //设置指针
+                utxo.setPointer(new Pointer(t.getId(),i));
+                utxoList.add(utxo);
+            }
+        }
+        return utxoList;
+    }
+
+
+    private List<UTXO> findUTXOFromTxs(List<Transaction> txs) {
+        List<UTXO> utxoList = new ArrayList<>();
+        for (Transaction t : txs) {
+            for(int i=0;i<t.getOutList().size();++i){
+                UTXO utxo=new UTXO();
+                utxo.setSpent(false);
+                utxo.setVout(t.getOutList().get(i));
+                utxo.setConfirmed(false);
+                utxo.setCoinBase(t.isCoinBase());
+                //设置指针
+                utxo.setPointer(new Pointer(t.getId(),i));
+                utxoList.add(utxo);
+            }
+        }
+        return utxoList;
     }
 
     /**
@@ -259,5 +378,9 @@ public class TransactionServiceImpl implements TransactionService {
             sb.append(base.charAt(number));
         }
         return sb.toString();
+    }
+
+    public void setUtxoService(UTXOService utxoService) {
+        this.utxoService = utxoService;
     }
 }

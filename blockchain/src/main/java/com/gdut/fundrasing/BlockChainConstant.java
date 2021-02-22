@@ -2,9 +2,9 @@ package com.gdut.fundrasing;
 
 public class BlockChainConstant {
     /**
-     * 手续费10分钱
+     * 手续费0分钱
      */
-    public static long FEE = 10;
+    public static long FEE = 0;
 
 
     /**
@@ -16,6 +16,11 @@ public class BlockChainConstant {
      * 版本
      */
     public static String VERSION="1.0.0";
+
+    /**
+     * 是否允许从有效交易中提取UTXO创建交易
+     */
+    public static boolean ALLOW_UTXO_FORM_POOL=true;
 
 
 }

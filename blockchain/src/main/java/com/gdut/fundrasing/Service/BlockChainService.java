@@ -22,4 +22,12 @@ public interface BlockChainService {
      * @return
      */
     boolean verifyBlock(Peer peer,Block block);
+
+    /**
+     * 添加区块到链上
+     * @param peer
+     * @param block
+     * @return
+     */
+    boolean addBlockToChain(Peer peer,Block block);
 }

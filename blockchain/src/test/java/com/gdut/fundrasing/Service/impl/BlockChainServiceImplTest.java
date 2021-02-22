@@ -15,16 +15,12 @@ import org.testng.annotations.Test;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
-
-@RunWith(MockitoJUnitRunner.class)
 public class BlockChainServiceImplTest {
 
     @InjectMocks
@@ -35,6 +31,12 @@ public class BlockChainServiceImplTest {
 
     @Mock
     MerkleTreeService merkleTreeService;
+
+
+    MerkleTreeServiceImpl merkleTreeServiceImpl=new MerkleTreeServiceImpl();
+
+    TransactionServiceImpl transactionServiceImpl=new TransactionServiceImpl();
+
 
     @BeforeMethod
     public void setUp() {
@@ -81,6 +83,41 @@ public class BlockChainServiceImplTest {
 
     }
 
+    @Test
+    public void testAddBlockToChain() {
+        List<Block> blockChain=new ArrayList<>();
+        Block block1=buildBlock(0,null);
+        Block block2=buildBlock(1,block1.getPreBlockHash());
+        blockChain.add(block1);
+        blockChain.add(block2);
+
+        Peer peer=new Peer();
+        peer.setBlockChain(blockChain);
+
+        Block block3=buildBlock(2,block2.getHash());
+
+        boolean result= blockChainService.addBlockToChain(peer,block3);
+        Assert.assertTrue(result);
+
+    }
+
+    private Block buildBlock(int height,String preHash){
+        Block block=new Block();
+        List<Transaction> txs=new ArrayList<>();
+        txs.add(buildTransaction(false,0,new Date()));
+        txs.add(buildTransaction(true,1,new Date()));
+        block.setTxs(txs);
+
+        block.setMerkleRootHash(merkleTreeServiceImpl.getMerkleRoot(txs));
+        block.setHeight(height);
+        block.setPreBlockHash(preHash);
+        block.setVersion(BlockChainConstant.VERSION);
+        block.setTime(new Date());
+        block.setHash(Sha256Util.doubleSHA256(block.getHeader()));
+        return block;
+    }
+
+
     private Transaction buildTransaction(boolean coinBase, long fee, Date lockTime){
         Transaction transaction =new Transaction();
         transaction.setLockTime(lockTime);
@@ -89,4 +126,51 @@ public class BlockChainServiceImplTest {
         transaction.setId(Sha256Util.doubleSHA256(transaction.toString()));
         return  transaction;
     }
+
+
+    private Peer getPeer() {
+        Peer peer = new Peer();
+        Wallet wallet = new Wallet();
+        wallet.generateKeyAndAddress();
+        peer.setWallet(wallet);
+        return peer;
+    }
+
+    private UTXO getUTXO(PublicKey pk, String address) {
+        Pointer pointer = new Pointer();
+        UTXO utxo = new UTXO();
+        Vout vout = new Vout();
+
+        pointer.setN(1);
+        pointer.setTxId(generateRandomStr(32));
+
+        vout.setMoney(10000L);
+        vout.setToAddress(address);
+
+        utxo.setPointer(pointer);
+        utxo.setConfirmed(true);
+        utxo.setSpent(false);
+        utxo.setVout(vout);
+
+        return utxo;
+    }
+
+    /**
+     * 随机产生一个length长度的a-Z和0-9混合字符串
+     *
+     * @param length 长度
+     * @return 随机字符串
+     */
+    private String generateRandomStr(int length) {
+        String base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int number = random.nextInt(base.length());
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
+    }
+
+
 }

@@ -1,7 +1,5 @@
 package com.gdut.fundrasing;
 
-import java.security.PublicKey;
-
 /**
  * 未消费交易输出模块
  */
@@ -17,11 +15,6 @@ public class UTXO {
     Vout vout;
 
     /**
-     * 交易创建者者的公钥
-     */
-    private PublicKey publicKey;
-
-    /**
      * 是否已经被消费
      */
     private boolean isSpent;
@@ -31,8 +24,14 @@ public class UTXO {
      */
     private boolean isConfirmed;
 
+    /**
+     * 是否是创币交易
+     */
+    private boolean isCoinBase;
+
+
     public String encodeString(){
-        return pointer.getTxId()+pointer.getN()+new String(publicKey.getEncoded());
+        return pointer.getTxId()+pointer.getN();
     }
 
     public Pointer getPointer() {
@@ -51,13 +50,6 @@ public class UTXO {
         this.vout = vout;
     }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(PublicKey publicKey) {
-        this.publicKey = publicKey;
-    }
 
     public boolean isSpent() {
         return isSpent;
@@ -73,5 +65,13 @@ public class UTXO {
 
     public void setConfirmed(boolean confirmed) {
         isConfirmed = confirmed;
+    }
+
+    public boolean isCoinBase() {
+        return isCoinBase;
+    }
+
+    public void setCoinBase(boolean coinBase) {
+        isCoinBase = coinBase;
     }
 }

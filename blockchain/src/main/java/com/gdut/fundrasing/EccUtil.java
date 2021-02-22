@@ -106,11 +106,12 @@ public class EccUtil {
 //            System.out.println("  rmd: " + byte2HexString(r2).toUpperCase());
 //
 //            System.out.println("  adr: " + Base58.encode(r2));
+            result= Base58.encode(r2);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "";
+        return result;
     }
 
     /**

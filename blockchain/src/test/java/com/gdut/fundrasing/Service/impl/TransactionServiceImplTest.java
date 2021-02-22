@@ -21,37 +21,35 @@ class TransactionServiceImplTest {
         Peer peer = getPeer();
         Wallet wallet = peer.getWallet();
         HashMap<Pointer, UTXO> utxoMap = new HashMap<>();
-        UTXO utxo = getUTXO(wallet.getKeyPairList().
-                        get(wallet.getKeyPairList().size() - 1).getPublic(),
-                wallet.getAddress().get(wallet.getAddress().size() - 1));
+        UTXO utxo = getUTXO(wallet.getKeyPair().getPublic(),
+                wallet.getAddress());
         utxoMap.put(utxo.getPointer(), utxo);
 
         peer.setUTXOHashMap(utxoMap);
 
         Peer peerA = getPeer();
 
-        Transaction transaction1 = transactionService.createTransaction(peer, peerA.getWallet().getAddress().get(peerA.getWallet().getAddress().size() - 1), 1000);
+        Transaction transaction1 = transactionService.createTransaction(peerA, peerA.getWallet().getAddress(), 1000);
         Assert.assertNull(transaction1);
 
-        peer.setOwnUTXOHashMap(utxoMap);
-        Transaction transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress().get(peerA.getWallet().getAddress().size() - 1), 1000);
+        Transaction transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress(), 1000);
         Assert.assertNotNull(transaction);
 
         Assert.assertEquals(transaction.getInList().get(0).getToSpent().getTxId(), utxo.getPointer().getTxId());
-        Assert.assertEquals(transaction.getOutList().get(0).getToAddress(), peerA.getWallet().getAddress().get(0));
+        Assert.assertEquals(transaction.getOutList().get(0).getToAddress(), peerA.getWallet().getAddress());
         Assert.assertEquals(transaction.getOutList().get(0).getMoney(), 1000 - BlockChainConstant.FEE);
 
-        Assert.assertEquals(transaction.getOutList().get(1).getToAddress(), peer.getWallet().getAddress().get(0));
+        Assert.assertEquals(transaction.getOutList().get(1).getToAddress(), peer.getWallet().getAddress());
+        Assert.assertTrue(peer.getTransactionPool().containsKey(transaction.getId()));
+        UTXO utxo1 = getUTXO(peer.getWallet().getKeyPair().getPublic(), peer.getWallet().getAddress());
+        peer.getUTXOHashMap().put(utxo1.getPointer(), utxo1);
 
-        UTXO utxo1 = getUTXO(peer.getWallet().getKeyPairList().get(0).getPublic(), peer.getWallet().getAddress().get(0));
-        peer.getOwnUTXOHashMap().put(utxo1.getPointer(), utxo1);
-
-        transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress().get(0), 10001);
+        transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress(), 10001);
         Assert.assertNull(transaction);
 
-        UTXO utxo2 = getUTXO(peer.getWallet().getKeyPairList().get(0).getPublic(), peer.getWallet().getAddress().get(0));
-        peer.getOwnUTXOHashMap().put(utxo2.getPointer(), utxo2);
-        transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress().get(0), 10001);
+        UTXO utxo2 = getUTXO(peer.getWallet().getKeyPair().getPublic(), peer.getWallet().getAddress());
+        peer.getUTXOHashMap().put(utxo2.getPointer(), utxo2);
+        transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress(), 10001);
         Assert.assertEquals(transaction.getOutList().get(0).getMoney(), 10001 - BlockChainConstant.FEE);
 
         Assert.assertEquals(transaction.getOutList().get(1).getMoney(), 20000 - 10001);
@@ -63,16 +61,14 @@ class TransactionServiceImplTest {
         Peer peer = getPeer();
         Wallet wallet = peer.getWallet();
         HashMap<Pointer, UTXO> utxoMap = new HashMap<>();
-        UTXO utxo = getUTXO(wallet.getKeyPairList().
-                        get(wallet.getKeyPairList().size() - 1).getPublic(),
-                wallet.getAddress().get(wallet.getAddress().size() - 1));
+        UTXO utxo = getUTXO(wallet.getKeyPair().getPublic(),
+                wallet.getAddress());
         utxoMap.put(utxo.getPointer(), utxo);
 
         peer.setUTXOHashMap(utxoMap);
 
         Peer peerA = getPeer();
-        peer.setOwnUTXOHashMap(utxoMap);
-        Transaction transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress().get(peerA.getWallet().getAddress().size() - 1), 1000);
+        Transaction transaction = transactionService.createTransaction(peer, peerA.getWallet().getAddress(), 1000);
         Assert.assertNotNull(transaction);
         boolean result=transactionService.verifyTransaction(peer,transaction);
         Assert.assertFalse(result);
@@ -100,7 +96,7 @@ class TransactionServiceImplTest {
         vouts.add(vout2);
 
         pointer.setTxId("1434234234");
-        pointer.setN(10L);
+        pointer.setN(10);
 
         utxo.setPointer(pointer);
 
@@ -137,8 +133,6 @@ class TransactionServiceImplTest {
         utxo.setPointer(pointer);
         utxo.setConfirmed(true);
         utxo.setSpent(false);
-        //获取公钥
-        utxo.setPublicKey(pk);
         utxo.setVout(vout);
 
         return utxo;
