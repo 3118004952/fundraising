@@ -109,14 +109,14 @@ public class BlockChainServiceImplTest {
         Block block1=MockDataUtil.buildBlock(1,block.getHash(),txs);
         //打包第二个区块到区块链中
         result=blockChainService.addBlockToChain(peer,block1);
-        org.junit.Assert.assertTrue(result);
-        org.junit.Assert.assertTrue(peer.getBlockChain().size()==2);
-        org.junit.Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
-        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block1.getHash()));
-        org.junit.Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx1.getId()));
-        org.junit.Assert.assertTrue(peer.getTransactionPool().size()==0);
-        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().size()==1);
-        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+        Assert.assertTrue(result);
+        Assert.assertTrue(peer.getBlockChain().size()==2);
+        Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block1.getHash()));
+        Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx1.getId()));
+        Assert.assertTrue(peer.getTransactionPool().size()==0);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().size()==1);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
 
         Transaction tx2=transactionService.createTransaction(peer,peerA.getWallet().getAddress(),200);
 
@@ -124,12 +124,73 @@ public class BlockChainServiceImplTest {
         Block block2=MockDataUtil.buildBlock(1,block.getHash(),txs);
         //打包第三个区块(包含 tx1 tx2)到区块链中
         result=blockChainService.addBlockToChain(peer,block2);
+        Assert.assertTrue(result);
+        Assert.assertTrue(peer.getBlockChain().size()==2);
+        Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block2.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getTxs().size()==2);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+        Assert.assertTrue(peer.getTransactionPool().isEmpty());
+        Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx.getId()));
+
+    }
+
+    @Test
+    public void testAddBlockToChainUpLastBlock() {
+
+        TransactionServiceImpl transactionService=new TransactionServiceImpl();
+        BlockChainServiceImpl blockChainService=new BlockChainServiceImpl();
+        transactionService.setUtxoService(new UTXOServiceImpl());
+        blockChainService.setTransactionService(transactionService);
+        blockChainService.setUtxoService(new UTXOServiceImpl());
+
+        //获取节点并初始化钱包
+        Peer peer = getPeer();
+        Wallet wallet = peer.getWallet();
+        HashMap<Pointer, UTXO> utxoMap = new HashMap<>();
+        //创建第一笔交易
+        Transaction tx= transactionService.createCoinBaseTransaction(peer,peer.getWallet().getAddress(),1000);
+        List<Transaction> txs=new ArrayList<>();
+        txs.add(tx);
+        //封装数据成区块
+        Block block=MockDataUtil.buildBlock(0,null, txs);
+
+        //打包第一个区块到区块链中
+        boolean result= blockChainService.addBlockToChain(peer,block);
         org.junit.Assert.assertTrue(result);
-        org.junit.Assert.assertTrue(peer.getBlockChain().size()==2);
-        org.junit.Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
-        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block2.getHash()));
-        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getTxs().size()==2);
-        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+        Peer peerA=getPeer();
+        Transaction tx1=transactionService.createTransaction(peer,peerA.getWallet().getAddress(),100);
+        txs.clear();
+        txs.add(tx1);
+        Block block1=MockDataUtil.buildBlock(1,block.getHash(),txs);
+        //打包第二个区块到区块链中
+        result=blockChainService.addBlockToChain(peer,block1);
+        Assert.assertTrue(result);
+        Assert.assertTrue(peer.getBlockChain().size()==2);
+        Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block1.getHash()));
+        Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx1.getId()));
+        Assert.assertTrue(peer.getTransactionPool().size()==0);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().size()==1);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+        Assert.assertTrue(peer.getUTXOHashMap().containsKey(new Pointer(tx1.getId(),0)));
+        Assert.assertTrue(peer.getUTXOHashMap().containsKey(new Pointer(tx1.getId(),1)));
+
+        Transaction tx2=transactionService.createTransaction(peer,peerA.getWallet().getAddress(),200);
+        txs.clear();
+        txs.add(tx2);
+        Block block2=MockDataUtil.buildBlock(1,block.getHash(),txs);
+        //打包第三个区块(只含 tx1 tx2)到区块链中
+        //TODO 会爆错，整个区块链会混乱，因为上一个交易tx1丢失了
+        result=blockChainService.addBlockToChain(peer,block2);
+        Assert.assertTrue(result);
+        Assert.assertTrue(peer.getBlockChain().size()==2);
+        Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block2.getHash()));
+        Assert.assertTrue(peer.getBlockChain().get(1).getTxs().size()==1);
+        Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+        Assert.assertTrue(peer.getTransactionPool().isEmpty());
+        Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx.getId()));
 
     }
 
