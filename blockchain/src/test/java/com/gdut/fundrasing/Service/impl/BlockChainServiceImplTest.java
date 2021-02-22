@@ -33,10 +33,6 @@ public class BlockChainServiceImplTest {
     MerkleTreeService merkleTreeService;
 
 
-    MerkleTreeServiceImpl merkleTreeServiceImpl=new MerkleTreeServiceImpl();
-
-    TransactionServiceImpl transactionServiceImpl=new TransactionServiceImpl();
-
 
     @BeforeMethod
     public void setUp() {
@@ -85,19 +81,55 @@ public class BlockChainServiceImplTest {
 
     @Test
     public void testAddBlockToChain() {
-        List<Block> blockChain=new ArrayList<>();
-        Block block1=buildBlock(0,null);
-        Block block2=buildBlock(1,block1.getPreBlockHash());
-        blockChain.add(block1);
-        blockChain.add(block2);
 
-        Peer peer=new Peer();
-        peer.setBlockChain(blockChain);
+        TransactionServiceImpl transactionService=new TransactionServiceImpl();
+        BlockChainServiceImpl blockChainService=new BlockChainServiceImpl();
+        transactionService.setUtxoService(new UTXOServiceImpl());
+        blockChainService.setTransactionService(transactionService);
+        blockChainService.setUtxoService(new UTXOServiceImpl());
 
-        Block block3=buildBlock(2,block2.getHash());
+        //获取节点并初始化钱包
+        Peer peer = getPeer();
+        Wallet wallet = peer.getWallet();
+        HashMap<Pointer, UTXO> utxoMap = new HashMap<>();
+        //创建第一笔交易
+        Transaction tx= transactionService.createCoinBaseTransaction(peer,peer.getWallet().getAddress(),1000);
+        List<Transaction> txs=new ArrayList<>();
+        txs.add(tx);
+        //封装数据成区块
+        Block block=MockDataUtil.buildBlock(0,null, txs);
 
-        boolean result= blockChainService.addBlockToChain(peer,block3);
-        Assert.assertTrue(result);
+        //打包第一个区块到区块链中
+        boolean result= blockChainService.addBlockToChain(peer,block);
+        org.junit.Assert.assertTrue(result);
+        Peer peerA=getPeer();
+        Transaction tx1=transactionService.createTransaction(peer,peerA.getWallet().getAddress(),100);
+        txs.clear();
+        txs.add(tx1);
+        Block block1=MockDataUtil.buildBlock(1,block.getHash(),txs);
+        //打包第二个区块到区块链中
+        result=blockChainService.addBlockToChain(peer,block1);
+        org.junit.Assert.assertTrue(result);
+        org.junit.Assert.assertTrue(peer.getBlockChain().size()==2);
+        org.junit.Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block1.getHash()));
+        org.junit.Assert.assertTrue(peer.getTransactionPoolBackup().containsKey(tx1.getId()));
+        org.junit.Assert.assertTrue(peer.getTransactionPool().size()==0);
+        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().size()==1);
+        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
+
+        Transaction tx2=transactionService.createTransaction(peer,peerA.getWallet().getAddress(),200);
+
+        txs.add(tx2);
+        Block block2=MockDataUtil.buildBlock(1,block.getHash(),txs);
+        //打包第三个区块(包含 tx1 tx2)到区块链中
+        result=blockChainService.addBlockToChain(peer,block2);
+        org.junit.Assert.assertTrue(result);
+        org.junit.Assert.assertTrue(peer.getBlockChain().size()==2);
+        org.junit.Assert.assertTrue(peer.getBlockChain().get(0).getHash().equals(block.getHash()));
+        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getHash().equals(block2.getHash()));
+        org.junit.Assert.assertTrue(peer.getBlockChain().get(1).getTxs().size()==2);
+        org.junit.Assert.assertTrue(peer.getUTXOHashMapBackup().containsKey(new Pointer(tx.getId(),0)));
 
     }
 
@@ -107,7 +139,7 @@ public class BlockChainServiceImplTest {
         txs.add(buildTransaction(false,0,new Date()));
         txs.add(buildTransaction(true,1,new Date()));
         block.setTxs(txs);
-
+        MerkleTreeServiceImpl merkleTreeServiceImpl=new MerkleTreeServiceImpl();
         block.setMerkleRootHash(merkleTreeServiceImpl.getMerkleRoot(txs));
         block.setHeight(height);
         block.setPreBlockHash(preHash);
