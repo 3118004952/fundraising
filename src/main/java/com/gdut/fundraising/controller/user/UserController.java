@@ -15,7 +15,7 @@ import java.util.Map;
 @ControllerAdvice//全局异常处理
 @RestController
 @RequestMapping(value = "/user")
-public class User {
+public class UserController {
     @Autowired
     private UserService userService;
 
