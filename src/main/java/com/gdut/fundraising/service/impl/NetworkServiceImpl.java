@@ -1,7 +1,7 @@
 package com.gdut.fundraising.service.impl;
 
 
-import com.gdut.fundraising.entities.raft.Request;
+import com.gdut.fundraising.dto.raft.Request;
 import com.gdut.fundraising.exception.BaseException;
 import com.gdut.fundraising.service.NetworkService;
 import com.gdut.fundraising.util.JsonResult;

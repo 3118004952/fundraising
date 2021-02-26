@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * 服务器节点
  */
-public class ServiceNode {
+public class NodeInfoSet {
     private NodeInfo self;
     private NodeInfo leader;
     private List<NodeInfo> all;

@@ -1,7 +1,7 @@
-package com.gdut.fundraising.entities.raft;
+package com.gdut.fundraising.dto.raft;
 
 import com.gdut.fundraising.constant.raft.MessageType;
-
+import com.gdut.fundraising.dto.raft.Request;
 /**
  * 投票请求信息
  */

@@ -1,7 +1,7 @@
 package com.gdut.fundraising.util;
 
 import com.gdut.fundraising.constant.raft.MessageType;
-import com.gdut.fundraising.entities.raft.Request;
+import com.gdut.fundraising.dto.raft.Request;
 import org.springframework.web.client.RestTemplate;
 
 

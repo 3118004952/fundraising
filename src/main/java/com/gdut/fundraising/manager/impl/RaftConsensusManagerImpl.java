@@ -3,11 +3,11 @@ package com.gdut.fundraising.manager.impl;
 
 import com.gdut.fundraising.constant.raft.NodeStatus;
 import com.gdut.fundraising.dto.raft.VoteResult;
-import com.gdut.fundraising.entities.raft.VoteRequest;
+import com.gdut.fundraising.dto.raft.VoteRequest;
 import com.gdut.fundraising.manager.RaftConsensusManager;
 
 
-import com.gdut.fundraising.service.impl.NodeServiceImpl;
+import com.gdut.fundraising.entities.raft.DefaultNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -32,7 +32,7 @@ public class RaftConsensusManagerImpl implements RaftConsensusManager {
      */
 
     @Override
-    public VoteResult dealVoteRequest(VoteRequest param, final NodeServiceImpl node) {
+    public VoteResult dealVoteRequest(VoteRequest param, final DefaultNode node) {
         try {
             if (!voteLock.tryLock()) {
                 return VoteResult.fail(node.getCurrentTerm());
@@ -43,9 +43,9 @@ public class RaftConsensusManagerImpl implements RaftConsensusManager {
                 return VoteResult.fail(node.getCurrentTerm());
             }
 
-            LOGGER.info("node {} current vote for [{}], param candidateId : {}", node.getServiceNode().getSelf(),
+            LOGGER.info("node {} current vote for [{}], param candidateId : {}", node.getNodeInfoSet().getSelf(),
                     node.getVotedFor(), param.getCandidateId());
-            LOGGER.info("node {} current term {}, peer term : {}", node.getServiceNode().getSelf(),
+            LOGGER.info("node {} current term {}, peer term : {}", node.getNodeInfoSet().getSelf(),
                     node.getCurrentTerm(), param.getTerm());
             // (当前节点并没有投票 或者 已经投票过了且是对方节点) && 对方日志和自己一样新
             if ((StringUtils.isEmpty(node.getVotedFor()) || node.getVotedFor().equals(param.getCandidateId()))) {
@@ -82,14 +82,14 @@ public class RaftConsensusManagerImpl implements RaftConsensusManager {
      * @param param
      * @param node
      */
-    private void updateNode(VoteRequest param, NodeServiceImpl node) {
+    private void updateNode(VoteRequest param, DefaultNode node) {
         // 切换状态
         node.status = NodeStatus.FOLLOWER;
         //更新新的选举时间
         node.setPreElectionTime(System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(200) + 150);
         // 更新??
         // 这么快就要更新leader了吗
-        node.getServiceNode().setLeader(node.getServiceNode().getNode(param.getCandidateId()));
+        node.getNodeInfoSet().setLeader(node.getNodeInfoSet().getNode(param.getCandidateId()));
         node.setCurrentTerm(param.getTerm());
         node.setVotedFor(param.getCandidateId());
     }

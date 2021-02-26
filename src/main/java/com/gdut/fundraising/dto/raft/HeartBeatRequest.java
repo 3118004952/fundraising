@@ -1,4 +1,4 @@
-package com.gdut.fundraising.entities.raft;
+package com.gdut.fundraising.dto.raft;
 
 import com.gdut.fundraising.constant.raft.MessageType;
 
