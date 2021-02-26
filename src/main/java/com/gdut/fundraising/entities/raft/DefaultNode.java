@@ -4,12 +4,9 @@ package com.gdut.fundraising.entities.raft;
 import com.gdut.fundraising.constant.raft.NodeStatus;
 import com.gdut.fundraising.manager.RaftConsensusManager;
 import com.gdut.fundraising.manager.RaftLogManager;
-import com.gdut.fundraising.manager.impl.RaftConsensusManagerImpl;
-import com.gdut.fundraising.manager.impl.RaftLogManagerImpl;
 import com.gdut.fundraising.service.NetworkService;
 import com.gdut.fundraising.service.impl.NetworkServiceImpl;
-import com.gdut.fundraising.task.ElectionTask;
-import com.gdut.fundraising.task.HeartBeatTask;
+
 import com.gdut.fundraising.task.RaftThreadPool;
 
 
@@ -28,7 +25,7 @@ public abstract class DefaultNode {
     /**
      * 节点信息
      */
-    private NodeInfoSet nodeInfoSet;
+    protected NodeInfoSet nodeInfoSet;
 
     /**
      * 选举时间间隔基数 15S
@@ -98,34 +95,52 @@ public abstract class DefaultNode {
     /* ============ 所有服务器上持久存在的 ============= */
 
 
-    private NetworkService networkService = new NetworkServiceImpl();
+    /**
+     * 底层网络服务
+     */
+    protected NetworkService networkService = new NetworkServiceImpl();
 
     /**
      * 心跳任务
      */
-    protected HeartBeatTask heartBeatTask;
+    protected Runnable heartBeatTask;
 
     /**
      * 选举任务
      */
-    protected ElectionTask electionTask;
+    protected Runnable electionTask;
 
     /**
      * 一致性服务
      */
-    private RaftConsensusManager raftConsensusManager;
+    protected RaftConsensusManager raftConsensusManager;
 
     /**
      * 日志服务
      */
-    private RaftLogManager raftLogManager;
+    protected RaftLogManager raftLogManager;
 
     DefaultNode() {
         //TODO 添加其他网络节点
         init();
     }
 
-    abstract protected void init();
+   protected void init(){
+       //初始化节点
+       initNodeInfoSet();
+       //设置定时任务
+       setElectionTask();
+       //设置选择任务
+       setHeartBeatTask();
+       //这是底层网络服务
+       setNetworkService();
+       //设置一致性算法服务
+       setRaftConsensusManager();
+       //设置日志服务
+       setRaftLogManager();
+   }
+
+    protected abstract void initNodeInfoSet();
 
 
     /**
@@ -139,11 +154,24 @@ public abstract class DefaultNode {
      */
     abstract protected void setElectionTask();
 
-    protected void start() {
-        synchronized (this) {
+    /**
+     * 设置一致性服务
+     */
+    abstract protected void setRaftConsensusManager();
 
-            raftConsensusManager = new RaftConsensusManagerImpl();
-            raftLogManager = new RaftLogManagerImpl();
+
+    /**
+     * 设置底层网络服务
+     */
+    abstract protected void setNetworkService();
+
+    /**
+     * 设置日志服务
+     */
+    abstract protected void setRaftLogManager();
+
+    public void start() {
+        synchronized (this) {
 
             //延时启动心跳
             RaftThreadPool.scheduleWithFixedDelay(heartBeatTask, 500);
@@ -157,7 +185,7 @@ public abstract class DefaultNode {
                 currentTerm = logEntry.getTerm();
             }
 //
-//            LOGGER.info("start success, selfId : {} ", nodeInfoSet.getSelf());
+            LOGGER.info("start success, selfId : {} ", nodeInfoSet.getSelf().getId());
         }
     }
 
@@ -263,32 +291,15 @@ public abstract class DefaultNode {
         return networkService;
     }
 
-    public void setNetworkService(NetworkService networkService) {
-        this.networkService = networkService;
-    }
-
-    public HeartBeatTask getHeartBeatTask() {
-        return heartBeatTask;
-    }
-
-    public ElectionTask getElectionTask() {
-        return electionTask;
-    }
-
 
     public RaftConsensusManager getRaftConsensusManager() {
         return raftConsensusManager;
     }
 
-    public void setRaftConsensusManager(RaftConsensusManager raftConsensusManager) {
-        this.raftConsensusManager = raftConsensusManager;
-    }
+
 
     public RaftLogManager getRaftLogManager() {
         return raftLogManager;
     }
 
-    public void setRaftLogManager(RaftLogManager raftLogManager) {
-        this.raftLogManager = raftLogManager;
-    }
 }

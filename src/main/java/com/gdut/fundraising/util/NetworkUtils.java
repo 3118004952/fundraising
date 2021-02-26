@@ -7,10 +7,10 @@ import org.springframework.web.client.RestTemplate;
 
 public class NetworkUtils {
 
-    public static <R> JsonResult postByHttp(String url,R data){
+    public static <R> String postByHttp(String url,R data){
         RestTemplate restTemplate = new RestTemplate();
 
-        JsonResult result = restTemplate.postForObject(url, data, JsonResult.class);
+        String result = restTemplate.postForObject(url, data,String.class);
 
         return result;
     }
@@ -24,7 +24,7 @@ public class NetworkUtils {
      */
     public static String buildUrl(String ip, String port, Request request){
         String url="";
-        url+="http://"+ip+":"+port+"/node/"+ MessageType.getMessageType(request.getType());
+        url+="http://"+ip+":"+port+"/fundraising/node/"+ MessageType.getMessageType(request.getType()).getName();
         return url;
     }
 

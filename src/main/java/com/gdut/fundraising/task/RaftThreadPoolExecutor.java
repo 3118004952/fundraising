@@ -7,11 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author linxu
- * @date 2019/11/16
- * <tip>take care of yourself.everything is no in vain.</tip>
- */
+
 public class RaftThreadPoolExecutor extends ThreadPoolExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftThreadPoolExecutor.class);

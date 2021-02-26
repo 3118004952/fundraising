@@ -12,7 +12,8 @@ public class VoteResult {
      * 是否赢得投票
      */
     private boolean voteGranted;
-    public VoteResult(){
+
+    public VoteResult() {
 
     }
 
@@ -25,18 +26,26 @@ public class VoteResult {
         this.voteGranted = voteGranted;
     }
 
+    @Override
+    public String toString() {
+        return "VoteResult{" +
+                "voteGranted='" + voteGranted + '\'' +
+                ", term=" + term +
+                '}';
+    }
+
     /**
      * @return 失败
      */
     public static VoteResult fail(long term) {
-        return new VoteResult(term,false);
+        return new VoteResult(term, false);
     }
 
     /**
      * @return 成功
      */
     public static VoteResult ok(long term) {
-        return new VoteResult(term,true);
+        return new VoteResult(term, true);
     }
 
     public long getTerm() {

@@ -1,5 +1,7 @@
 package com.gdut.fundraising.entities.raft;
 
+import java.util.Arrays;
+
 /*
  * 每个服务器节点信息
  */
@@ -29,14 +31,25 @@ public class NodeInfo {
      */
     private String port;
 
-    public NodeInfo(){
+    public NodeInfo() {
 
     }
 
-    public NodeInfo(String ip,String port){
-        this.id=ip+":"+port;
-        this.ip=ip;
-        this.port=port;
+    public NodeInfo(String ip, String port) {
+        this.id = ip + ":" + port;
+        this.ip = ip;
+        this.port = port;
+    }
+
+    @Override
+    public String toString() {
+        return "NodeInfo{" +
+                "id='" + id + '\'' +
+                ", ip=" + ip +
+                ", port=" + port +
+                ", alive=" + alive +
+                ", status=" + status +
+                '}';
     }
 
     public String getId() {

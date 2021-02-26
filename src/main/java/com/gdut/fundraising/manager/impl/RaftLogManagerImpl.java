@@ -13,4 +13,9 @@ public class RaftLogManagerImpl implements RaftLogManager {
     public LogEntry getLastLogEntry() {
         return null;
     }
+
+    @Override
+    public long getLsatLogTerm() {
+        return 0;
+    }
 }
